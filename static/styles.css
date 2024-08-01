@@ -1,0 +1,40 @@
+@import url('https://fonts.googleapis.com/css2?family=Prompt:wght@300&display=swap');
+
+body {
+  margin: 0;
+  font-family: 'Prompt', sans-serif;
+  background-color: black;
+  color: white;
+  overflow: hidden;
+}
+
+canvas {
+  display: block;
+}
+
+#header {
+  text-align: center;
+  font-size: 2em;
+  font-weight: 300;
+  font-style: italic;
+  margin: 20px 0;
+  color: white;
+}
+
+#controls {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+#playButton {
+  font-family: 'Prompt', sans-serif;
+  font-size: 1em;
+  padding: 10px 20px;
+  background-color: #0f55e3;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}

@@ -82,22 +82,6 @@
         directionalLight.position.set(5, 5, 5).normalize();
         scene.add(directionalLight);
 
-        // Load font and add text
-        const fontLoader = new THREE.FontLoader();
-        fontLoader.load('https://threejs.org/examples/fonts/helvetiker_regular.typeface.json', function (font) {
-            const textGeometry = new THREE.TextGeometry('Synth', {
-                font: font,
-                size: 0.2,
-                height: 0.02,
-                curveSegments: 12,
-                bevelEnabled: false
-            });
-            const textMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });
-            const textMesh = new THREE.Mesh(textGeometry, textMaterial);
-            textMesh.position.set(-1.5, 0.55, 0);
-            scene.add(textMesh);
-        });
-
         // Knobs
         function createKnob(x, z) {
             const knobGroup = new THREE.Group();

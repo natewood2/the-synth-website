@@ -7,10 +7,24 @@
     <link rel="stylesheet" href="./static/styles.css">
 </head>
 <body>
-    <div id="header">the synth website</div>
-    <!-- <div id="menu">
-        <button id="menuButton">Menu</button>
-    </div> -->
+    <h1 id="header">the synth website</h1>
+    <div id="menu">
+        <button id="menuButton" class="dropdown"><span>menu</span></button>
+        <div id="menuItems" class="dropdownContent">
+            <button class="menuItem dropdown">scenes</button>
+            <div id="sceneToggles" class="dropdownContent">
+                <button class="toggleButton" id="rainToggle">rain</button>
+                <button class="toggleButton" id="snowToggle">snow</button>
+                <button class="toggleButton" id="spotlightToggle">spotlight</button>
+            </div>
+            <button class="menuItem dropdown">sequences</button>
+            <div id="sequenceToggles" class="dropdownContent">
+                <button class="toggleButton" id="rainToggle">fast</button>
+                <button class="toggleButton" id="snowToggle">super chill</button>
+                <button class="toggleButton" id="spotlightToggle">space vibes</button>
+            </div>
+        </div>
+    </div>
     <div id="controls">
         <button id="playButton">Play Sequence</button>
     </div>
@@ -21,7 +35,7 @@
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/geometries/TextGeometry.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.35/Tone.min.js"></script>
     <script type="module">
-        import Snow from './static/scripts/snow.js'
+        import Snow from './static/scripts/snow.js';
         // Set up scene, camera, and renderer
         const scene = new THREE.Scene();
         const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);

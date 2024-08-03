@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Synthesizer with Lights</title>
+    <link rel="stylesheet" href="./static/styles.css">
+</head>
+<body>
+    <h1 id="header">the synth website</h1>
+    <div id="menu">
+        <button id="menuButton" class="dropdown"><span>menu</span></button>
+        <div id="menuItems" class="dropdownContent">
+            <button class="menuItem dropdown">scenes</button>
+            <div id="sceneToggles" class="dropdownContent">
+                <button class="toggleButton" id="rainToggle">rain</button>
+                <button class="toggleButton" id="snowToggle">snow</button>
+                <button class="toggleButton" id="spotlightToggle">spotlight</button>
+            </div>
+            <button class="menuItem dropdown">sequences</button>
+            <div id="sequenceToggles" class="dropdownContent">
+                <button class="toggleButton" id="rainToggle">fast</button>
+                <button class="toggleButton" id="snowToggle">super chill</button>
+                <button class="toggleButton" id="spotlightToggle">space vibes</button>
+            </div>
+        </div>
+    </div>
+    <div id="controls" style="display: none;">
+        <button id="playButton">Play Sequence</button>
+    </div>
+    <script src="./static/scripts/menu.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/FontLoader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/geometries/TextGeometry.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.35/Tone.min.js"></script>
+    <script type="module">
+        import Snow from './static/scripts/snow.js';
+        // Set up scene, camera, and renderer
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
+
+        // Orbit controls
+        const controls = new THREE.OrbitControls(camera, renderer.domElement);
+
+        // Load texture
+        const textureLoader = new THREE.TextureLoader();
+        const synthTexture = textureLoader.load('./static/textures/Plastic005_1K-JPG_Color.jpg'); // Replace with your texture file path
+
+        // Synthesizer body
+        const bodyGeometry = new THREE.BoxGeometry(4, 0.5, 2);
+        const bodyMaterial = new THREE.MeshStandardMaterial({ map: synthTexture });
+        const synthBody = new THREE.Mesh(bodyGeometry, bodyMaterial);
+        synthBody.position.y = 0.25;
+        scene.add(synthBody);
+
+        // Adding some lights to the scene
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+        scene.add(ambientLight);
+
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+        directionalLight.position.set(5, 5, 5).normalize();
+        scene.add(directionalLight);
+
+        // Knobs
+        function createKnob(x, z) {
+            const knobGroup = new THREE.Group();
+
+            const knobGeometry = new THREE.CylinderGeometry(0.1, 0.1, 0.2, 32);
+            const knobMaterial = new THREE.MeshBasicMaterial({ color: 0x444444 });
+            const knob = new THREE.Mesh(knobGeometry, knobMaterial);
+            knob.position.y = 0.1;
+            knobGroup.add(knob);
+
+            // Add ridges around the knob
+            const ridgeGeometry = new THREE.BoxGeometry(0.02, 0.2, 0.03); // Longer and slimmer dimensions
+            const ridgeMaterial = new THREE.MeshBasicMaterial({ color: 0x474747 });
+            const ridgeCount = 16;
+            for (let i = 0; i < ridgeCount; i++) {
+                const angle = (i / ridgeCount) * Math.PI * 2;
+                const ridge = new THREE.Mesh(ridgeGeometry, ridgeMaterial);
+                ridge.position.set(
+                    0.11 * Math.cos(angle),
+                    0.1,
+                    0.11 * Math.sin(angle)
+                );
+                ridge.rotation.y = -angle;
+                knobGroup.add(ridge);
+            }
+
+            knobGroup.position.set(x, 0.5, z);
+            scene.add(knobGroup);
+        }
+
+        // Adding knobs
+        createKnob(-1, 0.5);
+        createKnob(0, 0.5);
+        createKnob(1, 0.5);
+
+        // Buttons and Lights
+        const buttons = [];
+        const lights = [];
+        function createButton(x, z, note) {
+            const buttonGeometry = new THREE.BoxGeometry(0.2, 0.1, 0.2); // Size of buttons
+            const buttonMaterial = new THREE.MeshBasicMaterial({ color: 0x0f55e3 });
+            const button = new THREE.Mesh(buttonGeometry, buttonMaterial);
+            button.position.set(x, 0.5, z); // Position of buttons
+            button.userData = { note }; // Store the note in userData
+            scene.add(button);
+            buttons.push(button);
+
+            // Create corresponding light
+            const lightGeometry = new THREE.SphereGeometry(0.05, 8, 8); // Small sphere for light
+            const lightMaterial = new THREE.MeshBasicMaterial({ color: 0x000000 }); // Initially off
+            const light = new THREE.Mesh(lightGeometry, lightMaterial);
+            light.position.set(x, 0.5, z - 0.3); // Position below the button on the z-axis
+            scene.add(light);
+            lights.push(light);
+        }
+
+        // Adding buttons with different notes closer together
+        createButton(-1, -0.5, "C4");
+        createButton(-0.6, -0.5, "D4");
+        createButton(-0.2, -0.5, "E4");
+        createButton(0.2, -0.5, "F4");
+        createButton(0.6, -0.5, "G4");
+        createButton(1, -0.5, "A4");
+        createButton(1.4, -0.5, "B4");
+        createButton(1.8, -0.5, "C5");
+
+        // Adding play button
+        function createPlayButton(x, z) {
+            const buttonGeometry = new THREE.BoxGeometry(0.3, 0.1, 0.3); // Size of play button
+            const buttonMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });
+            const button = new THREE.Mesh(buttonGeometry, buttonMaterial);
+            button.position.set(-1.5, 0.5, z); // Position of play button
+            scene.add(button);
+
+            // Add click event to play button
+            const raycaster = new THREE.Raycaster();
+            const mouse = new THREE.Vector2();
+
+            function onMouseClick(event) {
+                mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+                mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+                raycaster.setFromCamera(mouse, camera);
+
+                const intersects = raycaster.intersectObject(button);
+                if (intersects.length > 0) {
+                    playSequence();
+                }
+            }
+
+            window.addEventListener('click', onMouseClick);
+        }
+
+        createPlayButton(2.2, -0.5);
+
+        // Setting up the camera
+        camera.position.z = 5;
+
+        // Animation loop
+        function animate() {
+            requestAnimationFrame(animate);
+            controls.update();
+            renderer.render(scene, camera);
+        }
+        animate();
+
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        // Tone.js setup
+        const synth = new Tone.Synth().toDestination();
+
+        // Sequence storage
+        let noteSequence = [];
+
+        // Add click event for buttons to store note
+        function onMouseClick(event) {
+            const mouse = new THREE.Vector2();
+            const raycaster = new THREE.Raycaster();
+
+            mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+            mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+            raycaster.setFromCamera(mouse, camera);
+
+            const intersects = raycaster.intersectObjects(buttons);
+            if (intersects.length > 0) {
+                const button = intersects[0].object;
+                button.material.color.set(0x0012e2); // Change to a different shade of blue
+                noteSequence.push(button.userData.note); // Store the note in the sequence
+            }
+        }
+
+        window.addEventListener('click', onMouseClick);
+
+        // Function to play the sequence and activate lights
+        function playSequence() {
+            if (noteSequence.length === 0) return;
+
+            const now = Tone.now();
+            noteSequence.forEach((note, index) => {
+                synth.triggerAttackRelease(note, "8n", now + index * 0.1);
+
+                setTimeout(() => {
+                    const buttonIndex = buttons.findIndex(b => b.userData.note === note);
+                    if (buttonIndex !== -1) {
+                        lights[buttonIndex].material.color.set(0xff0000);
+                    }
+                }, index * 100);
+
+
+                setTimeout(() => {
+                    const buttonIndex = buttons.findIndex(b => b.userData.note === note);
+                    if (buttonIndex !== -1) {
+                        lights[buttonIndex].material.color.set(0x000000);
+                    }
+                }, index * 100 + 300);
+            });
+        }
+
+        function resetSequence() {
+            noteSequence = [];
+            buttons.forEach(button => {
+                button.material.color.set(0x0f55e3);
+            });
+            lights.forEach(light => {
+                light.material.color.set(0x000000);
+            });
+        }
+
+        // Hide the original play button in the controls div
+        document.getElementById('playButton').style.display = 'none';
+    </script>
+</body>
+</html>

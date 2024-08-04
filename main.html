@@ -37,6 +37,7 @@
     <script type="module">
         import { Rain } from './static/scripts/rain.js';
         import { Snow } from './static/scripts/snow.js';
+        import { spotLight } from './static/scripts/spotlight.js';
 
         // Set up scene, camera, and renderer
         const scene = new THREE.Scene();
@@ -60,7 +61,7 @@
         scene.add(synthBody);
 
         // Adding some lights to the scene
-        const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.2);
         scene.add(ambientLight);
 
         const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
@@ -70,6 +71,8 @@
         // Scene Effects
         // Rain(scene);
         Snow(scene);
+        spotLight(scene);
+
         // Knobs
         function createKnob(x, z) {
             const knobGroup = new THREE.Group();

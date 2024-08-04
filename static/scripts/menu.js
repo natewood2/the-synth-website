@@ -1,6 +1,12 @@
-document.addEventListener('DOMContentLoaded', function () {
-  const dropdowns = document.querySelectorAll('.dropdown');
+import { rain } from './rain.js';
+import { snow } from './snow.js';
+import { spotLight } from './spotlight.js';
+import { stars } from './stars.js';
 
+document.addEventListener('DOMContentLoaded', function () {
+
+  // Handles mechanics of the menu
+  const dropdowns = document.querySelectorAll('.dropdown');
   dropdowns.forEach(button => {
     button.addEventListener('click', function () {
       const dropdownContent = this.nextElementSibling;
@@ -14,4 +20,49 @@ document.addEventListener('DOMContentLoaded', function () {
       }
     });
   });
+
+  const toggles = document.querySelectorAll('.toggleButton');
+  toggles.forEach((toggle) => {
+    toggle.addEventListener('click', () => {
+      if (!toggle.style.color) {
+        toggle.style.color = 'grey';
+      }
+      toggle.style.color = toggle.style.color === 'grey' ? 'white' : 'grey';
+    });
+  });
 });
+
+export function menuScenesSelector(scene) {
+  const idMap = {
+    'rainToggle': rain,
+    'snowToggle': snow,
+    'starToggle': stars,
+    'spotlightToggle': spotLight
+  };
+
+  // State to track active effects
+  const activeEffects = {
+    'rainToggle': false,
+    'snowToggle': false,
+    'starToggle': false,
+    'spotlightToggle': false
+  };
+
+  const toggles = document.querySelectorAll('.toggleButton');
+  toggles.forEach((toggle) => {
+    toggle.addEventListener('click', () => {
+      const sceneFunc = idMap[toggle.id];
+      if (sceneFunc) {
+        if (activeEffects[toggle.id]) {
+          // Turn off the effect
+          sceneFunc('off');
+          activeEffects[toggle.id] = false;
+        } else {
+          // Turn on the effect
+          sceneFunc(scene);
+          activeEffects[toggle.id] = true;
+        }
+      }
+    });
+  });
+}

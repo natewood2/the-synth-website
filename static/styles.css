@@ -130,12 +130,12 @@ canvas {
 
 #sceneToggles,
 #sequenceToggles {
-  color: rgba(255, 255, 255, 0.5);
   margin-bottom: 10px;
   /* Align items to the right */
 }
 
 .toggleButton {
+  color: grey;
   height: 40px;
   min-width: 40px;
   text-align: right;

@@ -1,15 +1,19 @@
-export function Rain(scene) {
+export function rain(scene) {
+  if (scene === "off") {
+    console.log('turn off PLEASE');
+    return
+  }
   const rainGeometry = new THREE.BufferGeometry();
-  const rainCount = 2500;
+  const rainCount = 2000;
   const rainPositions = new Float32Array(rainCount * 3);
 
   // For each particle this loop sets it to spawn randomly along x, y, and z
   for (let i = 0; i < rainCount; i++) {
     // Storing in a "flat" array instead of an object
     // ex: [particle1-x, particle1-y, particle1-z, particle2-x, particle2-y, particle2-z]
-    rainPositions[i * 3] = Math.random() * 400 - 200; // x
-    rainPositions[i * 3 + 1] = Math.random() * 500 - 250; // y
-    rainPositions[i * 3 + 2] = Math.random() * 400 - 200; // z
+    rainPositions[i * 3] = Math.random() * 200 - 100; // x
+    rainPositions[i * 3 + 1] = Math.random() * 250 - 125; // y
+    rainPositions[i * 3 + 2] = Math.random() * 200 - 100; // z
   }
 
   rainGeometry.setAttribute('position', new THREE.BufferAttribute(rainPositions, 3));
@@ -34,8 +38,8 @@ export function Rain(scene) {
       positions[i + 1] -= .2 + Math.random() * rainSpeed;
       if (positions[i + 1] < -100) {
         positions[i + 1] = Math.random() * 200; // y
-        positions[i] = Math.random() * 400 - 200; // x
-        positions[i + 2] = Math.random() * 400 - 200; // z
+        positions[i] = Math.random() * 200 - 100; // x
+        positions[i + 2] = Math.random() * 200 - 100; // z
       }
     }
     rainParticles.geometry.attributes.position.needsUpdate = true;

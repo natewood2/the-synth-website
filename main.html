@@ -15,6 +15,7 @@
             <div id="sceneToggles" class="dropdownContent">
                 <button class="toggleButton" id="rainToggle">rain</button>
                 <button class="toggleButton" id="snowToggle">snow</button>
+                <button class="toggleButton" id="starToggle">stars</button>
                 <button class="toggleButton" id="spotlightToggle">spotlight</button>
             </div>
             <button class="menuItem dropdown">sequences</button>
@@ -28,16 +29,18 @@
     <div id="controls">
         <button id="playButton">Play Sequence</button>
     </div>
-    <script src="./static/scripts/menu.js"></script>
+    <script type="module" src="./static/scripts/menu.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/FontLoader.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/geometries/TextGeometry.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.35/Tone.min.js"></script>
     <script type="module">
-        import { Rain } from './static/scripts/rain.js';
-        import { Snow } from './static/scripts/snow.js';
-        import { spotLight } from './static/scripts/spotlight.js';
+        // import { rain } from './static/scripts/rain.js';
+        // import { snow } from './static/scripts/snow.js';
+        // import { spotLight } from './static/scripts/spotlight.js';
+        // import { stars } from './static/scripts/stars.js';
+        import { menuScenesSelector } from './static/scripts/menu.js';
 
         // Set up scene, camera, and renderer
         const scene = new THREE.Scene();
@@ -69,9 +72,7 @@
         scene.add(directionalLight);
 
         // Scene Effects
-        // Rain(scene);
-        Snow(scene);
-        spotLight(scene);
+        menuScenesSelector(scene);
 
         // Knobs
         function createKnob(x, z) {

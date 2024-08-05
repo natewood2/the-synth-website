@@ -13,6 +13,7 @@
         <div id="menuItems" class="dropdownContent">
             <button class="menuItem dropdown">scenes</button>
             <div id="sceneToggles" class="dropdownContent">
+                <button class="toggleButton" id="dayNightToggle">Day/Night</button>
                 <button class="toggleButton" id="rainToggle">rain</button>
                 <button class="toggleButton" id="snowToggle">snow</button>
                 <button class="toggleButton" id="starToggle">stars</button>
@@ -36,10 +37,7 @@
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/geometries/TextGeometry.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.35/Tone.min.js"></script>
     <script type="module">
-        // import { rain } from './static/scripts/rain.js';
-        // import { snow } from './static/scripts/snow.js';
-        // import { spotLight } from './static/scripts/spotlight.js';
-        // import { stars } from './static/scripts/stars.js';
+        import { dayNight } from './static/scripts/dayandnight.js';
         import { menuScenesSelector } from './static/scripts/menu.js';
 
         // Set up scene, camera, and renderer
@@ -63,16 +61,9 @@
         synthBody.position.y = 0.25;
         scene.add(synthBody);
 
-        // Adding some lights to the scene
-        const ambientLight = new THREE.AmbientLight(0xffffff, 0.2);
-        scene.add(ambientLight);
-
-        const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
-        directionalLight.position.set(5, 5, 5).normalize();
-        scene.add(directionalLight);
-
         // Scene Effects
         menuScenesSelector(scene);
+        dayNight(scene, 'on'); // Set to day time by default
 
         // Knobs
         function createKnob(x, z) {

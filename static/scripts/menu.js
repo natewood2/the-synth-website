@@ -2,6 +2,7 @@ import { rain } from './rain.js';
 import { snow } from './snow.js';
 import { spotLight } from './spotlight.js';
 import { stars } from './stars.js';
+import { dayNight } from './dayandnight.js';
 
 document.addEventListener('DOMContentLoaded', function () {
 
@@ -34,6 +35,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
 export function menuScenesSelector(scene) {
   const idMap = {
+    'dayNightToggle': dayNight,
     'rainToggle': rain,
     'snowToggle': snow,
     'starToggle': stars,
@@ -42,6 +44,7 @@ export function menuScenesSelector(scene) {
 
   // State to track active effects
   const activeEffects = {
+    'dayNightToggle': true,
     'rainToggle': false,
     'snowToggle': false,
     'starToggle': false,
@@ -59,7 +62,7 @@ export function menuScenesSelector(scene) {
           activeEffects[toggle.id] = false;
         } else {
           // Turn on the effect
-          sceneFunc(scene);
+          sceneFunc(scene, 'on');
           activeEffects[toggle.id] = true;
         }
       }

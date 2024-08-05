@@ -34,7 +34,7 @@ export function stars(scene, action) {
 
 
   const texture = new THREE.CanvasTexture(canvas);
-  const starSize = Math.random() * 5 - .5; // Random size for each star
+  const starSize = Math.random() * 2; // Random size for each star
   const starMaterial = new THREE.PointsMaterial({
     color: 0xffffff,
     size: starSize,

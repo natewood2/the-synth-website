@@ -14,6 +14,7 @@
             <button class="menuItem dropdown">scenes</button>
             <div id="sceneToggles" class="dropdownContent">
                 <button class="toggleButton" id="dayNightToggle">Day/Night</button>
+                <button class="toggleButton" id="roomToggle">room</button>
                 <button class="toggleButton" id="rainToggle">rain</button>
                 <button class="toggleButton" id="snowToggle">snow</button>
                 <button class="toggleButton" id="starToggle">stars</button>
@@ -36,6 +37,7 @@
     <script type="module">
         import { dayNight } from './static/scripts/dayandnight.js';
         import { menuScenesSelector } from './static/scripts/menu.js';
+        import { boundaries } from './static/scripts/room.js';
 
         // Set up scene, camera, and renderer
         const scene = new THREE.Scene();
@@ -46,6 +48,12 @@
 
         // Orbit controls
         const controls = new THREE.OrbitControls(camera, renderer.domElement);
+
+        // Set initial camera position
+        camera.position.set(0, 5, -10); // x, y, z
+
+
+
 
         // Load texture
         const textureLoader = new THREE.TextureLoader();
@@ -160,6 +168,11 @@
         // Animation loop
         function animate() {
             requestAnimationFrame(animate);
+            // Clamp camera position within boundaries
+            camera.position.x = Math.max(boundaries.minX, Math.min(boundaries.maxX, camera.position.x));
+            camera.position.y = Math.max(boundaries.minY, Math.min(boundaries.maxY, camera.position.y));
+            camera.position.z = Math.max(boundaries.minZ, Math.min(boundaries.maxZ, camera.position.z));
+
             controls.update();
             renderer.render(scene, camera);
         }

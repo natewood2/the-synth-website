@@ -1,4 +1,16 @@
-export function snow(scene) {
+//Must init out of function to use as reference when removing particles
+let snowParticles;
+
+export function snow(scene, action) {
+  if (snowParticles || action === 'off') {
+    // Check if we are turning off the effect and then remove it and set to null
+    scene.remove(snowParticles);
+    snowParticles.geometry.dispose();
+    snowParticles.material.dispose();
+    snowParticles = null;
+    return
+  }
+
   const snowGeometry = new THREE.BufferGeometry();
   const snowCount = 5000;
   const snowPositions = new Float32Array(snowCount * 3);
@@ -16,7 +28,7 @@ export function snow(scene) {
     opacity: 0.6,
     transparent: true,
   });
-  const snowParticles = new THREE.Points(snowGeometry, snowMaterial);
+  snowParticles = new THREE.Points(snowGeometry, snowMaterial);
 
   scene.add(snowParticles);
 
@@ -29,6 +41,7 @@ export function snow(scene) {
   }
 
   function animateSnow() {
+    if (!snowParticles) return;
     requestAnimationFrame(animateSnow);
 
     // Update snow positions

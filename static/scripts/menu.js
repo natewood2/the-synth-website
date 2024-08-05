@@ -55,7 +55,7 @@ export function menuScenesSelector(scene) {
       if (sceneFunc) {
         if (activeEffects[toggle.id]) {
           // Turn off the effect
-          sceneFunc('off');
+          sceneFunc(scene, 'off');
           activeEffects[toggle.id] = false;
         } else {
           // Turn on the effect

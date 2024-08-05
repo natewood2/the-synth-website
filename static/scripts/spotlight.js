@@ -1,22 +1,31 @@
-export function spotLight(scene) {
+let spotlight; //Must init out of function to use as reference when removing particles
+
+export function spotLight(scene, action) {
+  if (spotlight || action === 'off') {
+    scene.remove(spotlight);
+    spotlight = null;
+    return
+  }
+
   // Create a spotlight
-  const spotLight = new THREE.SpotLight(0xffff99);
-  spotLight.position.set(0, 20, 0); // Overhead position
-  spotLight.angle = Math.PI / 20; // Divide by more to make light smaller
-  spotLight.penumbra = 0.3; // Increase for softer edges
-  spotLight.decay = 2;
-  spotLight.distance = 200;
-  spotLight.intensity = 0.8; // Reduce intensity for its "opacity"
+  spotlight = new THREE.SpotLight(0xffff99);
+  spotlight.position.set(0, 20, 0); // Overhead position
+  spotlight.angle = Math.PI / 20; // Divide by more to make light smaller
+  spotlight.penumbra = 0.3; // Increase for softer edges
+  spotlight.decay = 2;
+  spotlight.distance = 200;
+  spotlight.intensity = 0.8; // Reduce intensity for its "opacity"
 
   // Shadow settings
-  spotLight.castShadow = true;
-  spotLight.shadow.mapSize.width = 1024;
-  spotLight.shadow.mapSize.height = 1024;
-  spotLight.shadow.camera.near = 10;
-  spotLight.shadow.camera.far = 200;
-  spotLight.shadow.camera.fov = 30;
+  spotlight.castShadow = true;
+  spotlight.shadow.mapSize.width = 1024;
+  spotlight.shadow.mapSize.height = 1024;
+  spotlight.shadow.camera.near = 10;
+  spotlight.shadow.camera.far = 200;
+  spotlight.shadow.camera.fov = 30;
 
-  scene.add(spotLight);
+  spotlight.name = 'spotLight';
+  scene.add(spotlight);
 
   // spotlight helper to visualize
   // const spotLightHelper = new THREE.SpotLightHelper(spotLight);

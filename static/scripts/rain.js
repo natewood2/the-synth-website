@@ -1,8 +1,16 @@
-export function rain(scene) {
-  if (scene === "off") {
-    console.log('turn off PLEASE');
+//Must init out of function to use as reference when removing particles
+let rainParticles;
+
+export function rain(scene, action) {
+  if (rainParticles || action === 'off') {
+    // Check if we are turning off the effect and then remove it and set to null
+    scene.remove(rainParticles);
+    rainParticles.geometry.dispose();
+    rainParticles.material.dispose();
+    rainParticles = null;
     return
   }
+
   const rainGeometry = new THREE.BufferGeometry();
   const rainCount = 2000;
   const rainPositions = new Float32Array(rainCount * 3);
@@ -17,6 +25,7 @@ export function rain(scene) {
   }
 
   rainGeometry.setAttribute('position', new THREE.BufferAttribute(rainPositions, 3));
+
   // This is setting up the rains look, size, and color
   const rainMaterial = new THREE.PointsMaterial({
     color: 0xACACEE,
@@ -24,11 +33,12 @@ export function rain(scene) {
     transparent: true,
     opacity: 0.8,
   });
-  const rainParticles = new THREE.Points(rainGeometry, rainMaterial);
+  rainParticles = new THREE.Points(rainGeometry, rainMaterial);
 
   scene.add(rainParticles);
 
   function animateRain() {
+    if (!rainParticles) return;
     requestAnimationFrame(animateRain);
 
     const rainSpeed = 4;

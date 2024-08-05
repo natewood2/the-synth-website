@@ -1,4 +1,14 @@
-export function stars(scene) {
+let starField;
+
+export function stars(scene, action) {
+  if (starField || action === 'off') {
+    scene.remove(starField);
+    starField.geometry.dispose();
+    starField.material.dispose();
+    starField = undefined;
+    return;
+  }
+
   const starGeometry = new THREE.BufferGeometry();
   const starCount = 5000;
   const starPositions = new Float32Array(starCount * 3);
@@ -10,8 +20,29 @@ export function stars(scene) {
   }
 
   starGeometry.setAttribute('position', new THREE.BufferAttribute(starPositions, 3));
-  const starMaterial = new THREE.PointsMaterial({ color: 0xffffff, size: 0.5 });
-  const starField = new THREE.Points(starGeometry, starMaterial);
+
+
+  // Create a circular texture
+  const canvas = document.createElement('canvas');
+  canvas.width = 64;
+  canvas.height = 64;
+  const context = canvas.getContext('2d');
+  context.beginPath();
+  context.arc(32, 32, 30, 0, Math.PI * 2);
+  context.fillStyle = 'white';
+  context.fill();
+
+
+  const texture = new THREE.CanvasTexture(canvas);
+  const starSize = Math.random() * 5 - .5; // Random size for each star
+  const starMaterial = new THREE.PointsMaterial({
+    color: 0xffffff,
+    size: starSize,
+    map: texture,
+    transparent: true,
+  });
+
+  starField = new THREE.Points(starGeometry, starMaterial);
 
   scene.add(starField);
 }

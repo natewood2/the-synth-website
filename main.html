@@ -27,9 +27,6 @@
             </div>
         </div>
     </div>
-    <div id="controls">
-        <button id="playButton">Play Sequence</button>
-    </div>
     <script type="module" src="./static/scripts/menu.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
@@ -102,14 +99,22 @@
 
         // Buttons
         const buttons = [];
+        const lights = [];
         function createButton(x, z, note) {
-            const buttonGeometry = new THREE.BoxGeometry(0.2, 0.1, 0.2); // Size of buttons
+            const buttonGeometry = new THREE.BoxGeometry(0.2, 0.1, 0.2);
             const buttonMaterial = new THREE.MeshBasicMaterial({ color: 0x0f55e3 });
             const button = new THREE.Mesh(buttonGeometry, buttonMaterial);
-            button.position.set(x, 0.5, z); // Position of buttons
-            button.userData = { note }; // Store the note in userData
+            button.position.set(x, 0.5, z);
+            button.userData = { note };
             scene.add(button);
             buttons.push(button);
+
+            const lightGeometry = new THREE.SphereGeometry(0.05, 8, 8);
+            const lightMaterial = new THREE.MeshBasicMaterial({ color: 0x000000 });
+            const light = new THREE.Mesh(lightGeometry, lightMaterial);
+            light.position.set(x, 0.5, z - 0.3);
+            scene.add(light);
+            lights.push(light);
         }
 
         // Adding buttons with different notes closer together
@@ -121,6 +126,33 @@
         createButton(1, -0.5, "A4");
         createButton(1.4, -0.5, "B4");
         createButton(1.8, -0.5, "C5");
+
+        function createPlayButton(x, z) {
+            const buttonGeometry = new THREE.BoxGeometry(0.3, 0.1, 0.3);
+            const buttonMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });
+            const button = new THREE.Mesh(buttonGeometry, buttonMaterial);
+            button.position.set(-1.5, 0.5, z);
+            scene.add(button);
+
+            const raycaster = new THREE.Raycaster();
+            const mouse = new THREE.Vector2();
+
+            function onMouseClick(event) {
+                mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+                mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+                raycaster.setFromCamera(mouse, camera);
+
+                const intersects = raycaster.intersectObject(button);
+                if (intersects.length > 0) {
+                    playSequence();
+                }
+            }
+
+            window.addEventListener('click', onMouseClick);
+        }
+
+        createPlayButton(2.2, -0.5);
+
 
         // Setting up the camera
         camera.position.z = 5;
@@ -171,7 +203,21 @@
 
             const now = Tone.now();
             noteSequence.forEach((note, index) => {
-                synth.triggerAttackRelease(note, "8n", now + index * 0.1);
+                synth.triggerAttackRelease(note, "8n", now + index * 0.2);
+
+                setTimeout(() => {
+                    const buttonIndex = buttons.findIndex(b => b.userData.note === note);
+                    if (buttonIndex !== -1) {
+                        lights[buttonIndex].material.color.set(0xff0000);
+                    }
+                }, index * 100);
+
+                setTimeout(() => {
+                    const buttonIndex = buttons.findIndex(b => b.userData.note === note);
+                    if (buttonIndex !== -1) {
+                        lights[buttonIndex].material.color.set(0x000000);
+                    }
+                }, index * 100 + 300);
             });
         }
 

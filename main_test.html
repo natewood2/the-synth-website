@@ -52,9 +52,11 @@
 
         // Set initial camera position
         camera.position.set(0, 5, -10); // x, y, z
+        const raycaster = new THREE.Raycaster();
+        const mouse = new THREE.Vector2();
 
-
-
+        // Synthesizer setup
+        const synth = new Tone.Synth().toDestination();
 
         // Load texture
         const textureLoader = new THREE.TextureLoader();
@@ -71,28 +73,51 @@
             scene.add(gltf.scene);
             synthObj = gltf;
             console.log(synthObj);
-            let buttonsList = [];
-            for (let child of synthObj.scene.children) {
-                if (child.name.includes('button-')) {
-                    buttonsList.push(child);
+
+            // Traverse the GLTF scene to find the buttons and log their names
+            gltf.scene.traverse((child) => {
+                if (child.isMesh && child.name.startsWith('button-')) {
+                    child.userData.note = getNoteFromButton(child.name);
+                    console.log(`Found button: ${child.name}`);
                 }
-            }
-            console.log(buttonsList)
+            });
         }, undefined, function (error) {
             console.error(error);
         });
 
-        // Setting up the camera
-        camera.position.z = 5;
+        function getNoteFromButton(buttonName) {
+            switch (buttonName) {
+                case 'button-1': return 'C4';
+                case 'button-2': return 'D4';
+                case 'button-3': return 'E4';
+                case 'button-4': return 'F4';
+                case 'button-5': return 'G4';
+                case 'button-6': return 'A4';
+                case 'button-7': return 'B4';
+                case 'button-8': return 'C5';
+                default: return 'C4';
+            }
+        }
+
+        // Mouse event listener for raycaster
+        document.addEventListener('click', function(event) {
+            mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+            mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+            raycaster.setFromCamera(mouse, camera);
+            const intersects = raycaster.intersectObjects(scene.children, true);
+
+            if (intersects.length > 0) {
+                const intersectedObject = intersects[0].object;
+                if (intersectedObject.userData.note) {
+                    synth.triggerAttackRelease(intersectedObject.userData.note, '8n');
+                }
+            }
+        });
 
         // Animation loop
         function animate() {
             requestAnimationFrame(animate);
-            // Clamp camera position within boundaries
-            camera.position.x = Math.max(boundaries.minX, Math.min(boundaries.maxX, camera.position.x));
-            camera.position.y = Math.max(boundaries.minY, Math.min(boundaries.maxY, camera.position.y));
-            camera.position.z = Math.max(boundaries.minZ, Math.min(boundaries.maxZ, camera.position.z));
-
             controls.update();
             renderer.render(scene, camera);
         }
@@ -105,66 +130,6 @@
             renderer.setSize(window.innerWidth, window.innerHeight);
         });
 
-        // Tone.js setup
-        const synth = new Tone.Synth().toDestination();
-
-        // Sequence storage
-        let noteSequence = [];
-
-        // Add click event for buttons to change color and store note
-        function onMouseClick(event) {
-            const mouse = new THREE.Vector2();
-            const raycaster = new THREE.Raycaster();
-
-            mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
-            mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
-            raycaster.setFromCamera(mouse, camera);
-
-            const intersects = raycaster.intersectObjects(buttons);
-            if (intersects.length > 0) {
-                const button = intersects[0].object;
-                button.material.color.set(0x0012e2); // Change to a different shade of blue
-                noteSequence.push(button.userData.note); // Store the note in the sequence
-            }
-        }
-
-        window.addEventListener('click', onMouseClick);
-
-        // Function to play the sequence
-        function playSequence() {
-            if (noteSequence.length === 0) return;
-
-            const now = Tone.now();
-            noteSequence.forEach((note, index) => {
-                synth.triggerAttackRelease(note, "8n", now + index * 0.2);
-
-                setTimeout(() => {
-                    const buttonIndex = buttons.findIndex(b => b.userData.note === note);
-                    if (buttonIndex !== -1) {
-                        lights[buttonIndex].material.color.set(0xff0000);
-                    }
-                }, index * 100);
-
-                setTimeout(() => {
-                    const buttonIndex = buttons.findIndex(b => b.userData.note === note);
-                    if (buttonIndex !== -1) {
-                        lights[buttonIndex].material.color.set(0x000000);
-                    }
-                }, index * 100 + 300);
-            });
-        }
-
-        // Function to reset the sequence
-        function resetSequence() {
-            noteSequence = [];
-            buttons.forEach(button => {
-                button.material.color.set(0x0f55e3); // Reset button color
-            });
-        }
-
-        // Add event listeners for the play button
-        document.getElementById('playButton').addEventListener('click', playSequence);
-        document.getElementById('playButton').addEventListener('dblclick', resetSequence);
     </script>
 </body>
 </html>

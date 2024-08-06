@@ -43,14 +43,24 @@
 
         // Position the camera
         camera.position.z = 5;
-
+        let synthObj;
         // Load the GLTF model
         const loader = new THREE.GLTFLoader();
         loader.load('./static/assets/synth.glb', function(gltf) {
             scene.add(gltf.scene);
+            synthObj = gltf;
+            console.log(synthObj);
+            let buttonsList = [];
+            for (let child of synthObj.scene.children) {
+                if (child.name.includes('button-')) {
+                    buttonsList.push(child);
+                }
+            }
+            console.log(buttonsList)
         }, undefined, function(error) {
             console.error(error);
         });
+
 
         // PointerLockControls
         const controls = new THREE.PointerLockControls(camera, document.body);

@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Synthesizer</title>
+    <link rel="stylesheet" href="./static/styles.css">
+</head>
+<body>
+    <h1 id="header">the synth website</h1>
+    <div id="menu">
+        <button id="menuButton" class="dropdown"><span>menu</span></button>
+        <div id="menuItems" class="dropdownContent">
+            <button class="menuItem dropdown">scenes</button>
+            <div id="sceneToggles" class="dropdownContent">
+                <button class="toggleButton" id="dayNightToggle">Day/Night</button>
+                <button class="toggleButton" id="roomToggle">room</button>
+                <button class="toggleButton" id="rainToggle">rain</button>
+                <button class="toggleButton" id="snowToggle">snow</button>
+                <button class="toggleButton" id="starToggle">stars</button>
+                <button class="toggleButton" id="spotlightToggle">spotlight</button>
+            </div>
+            <button class="menuItem dropdown">sequences</button>
+            <div id="sequenceToggles" class="dropdownContent">
+                <button class="toggleButton" id="rainToggle">fast</button>
+                <button class="toggleButton" id="snowToggle">super chill</button>
+                <button class="toggleButton" id="spotlightToggle">space vibes</button>
+            </div>
+        </div>
+    </div>
+    <script type="module" src="./static/scripts/menu.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/FontLoader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/geometries/TextGeometry.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.35/Tone.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+    <script type="module">
+        import { dayNight } from './static/scripts/dayandnight.js';
+        import { menuScenesSelector } from './static/scripts/menu.js';
+        import { boundaries } from './static/scripts/room.js';
+
+        // Set up scene, camera, and renderer
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
+
+        // Orbit controls
+        const controls = new THREE.OrbitControls(camera, renderer.domElement);
+
+        // Set initial camera position
+        camera.position.set(0, 5, -10); // x, y, z
+
+
+
+
+        // Load texture
+        const textureLoader = new THREE.TextureLoader();
+        const synthTexture = textureLoader.load('./static/textures/Plastic005_1K-JPG_Color.jpg'); // Replace with your texture file path
+
+        // Scene Effects
+        menuScenesSelector(scene);
+        dayNight(scene, 'on'); // Set to day time by default
+
+        let synthObj;
+        // Load the GLTF model
+        const loader = new THREE.GLTFLoader();
+        loader.load('./static/assets/synth.glb', function (gltf) {
+            scene.add(gltf.scene);
+            synthObj = gltf;
+            console.log(synthObj);
+            let buttonsList = [];
+            for (let child of synthObj.scene.children) {
+                if (child.name.includes('button-')) {
+                    buttonsList.push(child);
+                }
+            }
+            console.log(buttonsList)
+        }, undefined, function (error) {
+            console.error(error);
+        });
+
+        // Setting up the camera
+        camera.position.z = 5;
+
+        // Animation loop
+        function animate() {
+            requestAnimationFrame(animate);
+            // Clamp camera position within boundaries
+            camera.position.x = Math.max(boundaries.minX, Math.min(boundaries.maxX, camera.position.x));
+            camera.position.y = Math.max(boundaries.minY, Math.min(boundaries.maxY, camera.position.y));
+            camera.position.z = Math.max(boundaries.minZ, Math.min(boundaries.maxZ, camera.position.z));
+
+            controls.update();
+            renderer.render(scene, camera);
+        }
+        animate();
+
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        // Tone.js setup
+        const synth = new Tone.Synth().toDestination();
+
+        // Sequence storage
+        let noteSequence = [];
+
+        // Add click event for buttons to change color and store note
+        function onMouseClick(event) {
+            const mouse = new THREE.Vector2();
+            const raycaster = new THREE.Raycaster();
+
+            mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+            mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+            raycaster.setFromCamera(mouse, camera);
+
+            const intersects = raycaster.intersectObjects(buttons);
+            if (intersects.length > 0) {
+                const button = intersects[0].object;
+                button.material.color.set(0x0012e2); // Change to a different shade of blue
+                noteSequence.push(button.userData.note); // Store the note in the sequence
+            }
+        }
+
+        window.addEventListener('click', onMouseClick);
+
+        // Function to play the sequence
+        function playSequence() {
+            if (noteSequence.length === 0) return;
+
+            const now = Tone.now();
+            noteSequence.forEach((note, index) => {
+                synth.triggerAttackRelease(note, "8n", now + index * 0.2);
+
+                setTimeout(() => {
+                    const buttonIndex = buttons.findIndex(b => b.userData.note === note);
+                    if (buttonIndex !== -1) {
+                        lights[buttonIndex].material.color.set(0xff0000);
+                    }
+                }, index * 100);
+
+                setTimeout(() => {
+                    const buttonIndex = buttons.findIndex(b => b.userData.note === note);
+                    if (buttonIndex !== -1) {
+                        lights[buttonIndex].material.color.set(0x000000);
+                    }
+                }, index * 100 + 300);
+            });
+        }
+
+        // Function to reset the sequence
+        function resetSequence() {
+            noteSequence = [];
+            buttons.forEach(button => {
+                button.material.color.set(0x0f55e3); // Reset button color
+            });
+        }
+
+        // Add event listeners for the play button
+        document.getElementById('playButton').addEventListener('click', playSequence);
+        document.getElementById('playButton').addEventListener('dblclick', resetSequence);
+    </script>
+</body>
+</html>

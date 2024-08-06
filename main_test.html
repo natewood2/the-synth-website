@@ -78,7 +78,7 @@
             gltf.scene.traverse((child) => {
                 if (child.isMesh && child.name.startsWith('button-')) {
                     child.userData.note = getNoteFromButton(child.name);
-                    console.log(`Found button: ${child.name}`);
+                    console.log(`Found button: ${child}`);
                 }
             });
         }, undefined, function (error) {
@@ -111,6 +111,14 @@
                 const intersectedObject = intersects[0].object;
                 if (intersectedObject.userData.note) {
                     synth.triggerAttackRelease(intersectedObject.userData.note, '8n');
+                    let buttonColor = intersectedObject.material.color;
+                    if (buttonColor.getHex() === 0xff0000) {
+                        console.log('red');
+                        buttonColor.set(0xFFFFE0);
+                    } else {
+                        buttonColor.set(0xff0000);
+                    }
+                    console.log(buttonColor);
                 }
             }
         });

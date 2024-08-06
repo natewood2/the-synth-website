@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Three.js Model Loader</title>
+    <style>
+        body { margin: 0; }
+        canvas { display: block; }
+    </style>
+</head>
+<body>
+    <button id="lockButton" style="position: absolute; top: 20px; left: 20px;">Click to lock pointer</button>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/PointerLockControls.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+    <script>
+        // Basic Three.js setup
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
+
+        // Add ambient light
+        const ambientLight = new THREE.AmbientLight(0x404040, 2); // Increased intensity
+        scene.add(ambientLight);
+
+        // Add directional light
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 2); // Increased intensity
+        directionalLight.position.set(0, 10, 0); // Overhead light
+        directionalLight.castShadow = true;
+        scene.add(directionalLight);
+
+        // Add additional point lights for better illumination
+        const pointLight1 = new THREE.PointLight(0xffffff, 1.5, 100);
+        pointLight1.position.set(5, 5, 5);
+        scene.add(pointLight1);
+
+        const pointLight2 = new THREE.PointLight(0xffffff, 1.5, 100);
+        pointLight2.position.set(-5, 5, -5);
+        scene.add(pointLight2);
+
+        // Position the camera
+        camera.position.z = 5;
+
+        // Load the GLTF model
+        const loader = new THREE.GLTFLoader();
+        loader.load('./static/assets/synth.glb', function(gltf) {
+            scene.add(gltf.scene);
+        }, undefined, function(error) {
+            console.error(error);
+        });
+
+        // PointerLockControls
+        const controls = new THREE.PointerLockControls(camera, document.body);
+        document.getElementById('lockButton').addEventListener('click', () => {
+            controls.lock();
+        });
+
+        controls.addEventListener('lock', () => {
+            console.log('Pointer locked');
+        });
+
+        controls.addEventListener('unlock', () => {
+            console.log('Pointer unlocked');
+        });
+
+        // Camera movement variables
+        const moveSpeed = 0.1;
+        const moveDistance = 0.2;
+        let moveForward = false;
+        let moveBackward = false;
+        let moveLeft = false;
+        let moveRight = false;
+        let moveUp = false;
+
+        // Keydown event listener
+        document.addEventListener('keydown', function(event) {
+            switch (event.code) {
+                case 'ArrowUp':
+                case 'KeyW':
+                    moveForward = true;
+                    break;
+                case 'ArrowDown':
+                case 'KeyS':
+                    moveBackward = true;
+                    break;
+                case 'ArrowLeft':
+                case 'KeyA':
+                    moveLeft = true;
+                    break;
+                case 'ArrowRight':
+                case 'KeyD':
+                    moveRight = true;
+                    break;
+                case 'Space':
+                    moveUp = true;
+                    break;
+            }
+        });
+
+        // Keyup event listener
+        document.addEventListener('keyup', function(event) {
+            switch (event.code) {
+                case 'ArrowUp':
+                case 'KeyW':
+                    moveForward = false;
+                    break;
+                case 'ArrowDown':
+                case 'KeyS':
+                    moveBackward = false;
+                    break;
+                case 'ArrowLeft':
+                case 'KeyA':
+                    moveLeft = false;
+                    break;
+                case 'ArrowRight':
+                case 'KeyD':
+                    moveRight = false;
+                    break;
+                case 'Space':
+                    moveUp = false;
+                    break;
+            }
+        });
+
+        // Update camera position
+        function updateCameraPosition() {
+            if (moveForward) controls.moveForward(moveDistance);
+            if (moveBackward) controls.moveForward(-moveDistance);
+            if (moveLeft) controls.moveRight(-moveDistance);
+            if (moveRight) controls.moveRight(moveDistance);
+            if (moveUp) camera.position.y += moveSpeed;
+        }
+
+        // Render loop
+        function animate() {
+            requestAnimationFrame(animate);
+            updateCameraPosition();
+            renderer.render(scene, camera);
+        }
+        animate();
+        // House Interior by Alex Safayan [CC-BY] via Poly Pizza
+    </script>
+</body>
+</html>

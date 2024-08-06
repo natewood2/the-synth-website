@@ -3,6 +3,7 @@ import { snow } from './snow.js';
 import { spotLight } from './spotlight.js';
 import { stars } from './stars.js';
 import { dayNight } from './dayandnight.js';
+import { room } from './room.js';
 
 document.addEventListener('DOMContentLoaded', function () {
 
@@ -34,8 +35,10 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 
 export function menuScenesSelector(scene) {
+  // map to access specific functions for each effect
   const idMap = {
     'dayNightToggle': dayNight,
+    'roomToggle': room,
     'rainToggle': rain,
     'snowToggle': snow,
     'starToggle': stars,
@@ -45,6 +48,7 @@ export function menuScenesSelector(scene) {
   // State to track active effects
   const activeEffects = {
     'dayNightToggle': true,
+    'roomToggle': false,
     'rainToggle': false,
     'snowToggle': false,
     'starToggle': false,
@@ -54,6 +58,15 @@ export function menuScenesSelector(scene) {
   const toggles = document.querySelectorAll('.toggleButton');
   toggles.forEach((toggle) => {
     toggle.addEventListener('click', () => {
+      // Check to not have rain/snow on at the same time
+      if (toggle.id === 'rainToggle' && activeEffects['snowToggle']) {
+        snow(scene, 'off');
+        activeEffects['snowToggle'] = false;
+      } else if (toggle.id === 'snowToggle' && activeEffects['rainToggle']) {
+        rain(scene, 'off');
+        activeEffects['rainToggle'] = false;
+      }
+
       const sceneFunc = idMap[toggle.id];
       if (sceneFunc) {
         if (activeEffects[toggle.id]) {

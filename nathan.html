@@ -31,8 +31,6 @@
     <script src="./static/scripts/menu.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/FontLoader.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/geometries/TextGeometry.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.35/Tone.min.js"></script>
     <script type="module">
         import Snow from './static/scripts/snow.js';
@@ -223,7 +221,7 @@
 
             const now = Tone.now();
             noteSequence.forEach((note, index) => {
-                synth.triggerAttackRelease(note, "8n", now + index * 0.1);
+                synth.triggerAttackRelease(note, "8n", now + index * 0.2);
 
                 setTimeout(() => {
                     const buttonIndex = buttons.findIndex(b => b.userData.note === note);

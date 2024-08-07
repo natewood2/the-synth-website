@@ -67,6 +67,9 @@
         dayNight(scene, 'on'); // Set to day time by default
 
         let synthObj;
+        const buttons = [];
+        const lights = [];
+        
         // Load the GLTF model
         const loader = new THREE.GLTFLoader();
         loader.load('./static/assets/synth.glb', function (gltf) {
@@ -74,30 +77,45 @@
             synthObj = gltf;
             console.log(synthObj);
 
-            // Traverse the GLTF scene to find the buttons and log their names
+            // Traverse the GLTF scene to find the buttons and lights
             gltf.scene.traverse((child) => {
                 if (child.isMesh && child.name.startsWith('button-')) {
-                    child.userData.note = getNoteFromButton(child.name);
-                    console.log(`Found button: ${child}`);
+                    const index = parseInt(child.name.split('-')[1], 10);
+                    child.userData.note = getNoteFromIndex(index);
+                    buttons[index] = child;
+                    console.log(`Found button: ${child.name} with note ${child.userData.note}`);
+                }
+                if (child.isMesh && child.name.startsWith('light-')) {
+                    const index = parseInt(child.name.split('-')[1], 10);
+                    lights[index] = child;
+                    console.log(`Found light: ${child.name}`);
+                }
+                if (child.isMesh && child.name === 'play-button') {
+                    child.userData.isPlayButton = true;
                 }
             });
+
+            console.log('Buttons:', buttons);
+            console.log('Lights:', lights);
         }, undefined, function (error) {
             console.error(error);
         });
 
-        function getNoteFromButton(buttonName) {
-            switch (buttonName) {
-                case 'button-1': return 'C4';
-                case 'button-2': return 'D4';
-                case 'button-3': return 'E4';
-                case 'button-4': return 'F4';
-                case 'button-5': return 'G4';
-                case 'button-6': return 'A4';
-                case 'button-7': return 'B4';
-                case 'button-8': return 'C5';
+        function getNoteFromIndex(index) {
+            switch (index) {
+                case 1: return 'C4';
+                case 2: return 'D4';
+                case 3: return 'E4';
+                case 4: return 'F4';
+                case 5: return 'G4';
+                case 6: return 'A4';
+                case 7: return 'B4';
+                case 8: return 'C5';
                 default: return 'C4';
             }
         }
+
+        let noteSequence = [];
 
         // Mouse event listener for raycaster
         document.addEventListener('click', function(event) {
@@ -110,18 +128,51 @@
             if (intersects.length > 0) {
                 const intersectedObject = intersects[0].object;
                 if (intersectedObject.userData.note) {
-                    synth.triggerAttackRelease(intersectedObject.userData.note, '8n');
+                    const index = parseInt(intersectedObject.name.split('-')[1], 10);
+                    noteSequence.push({ note: intersectedObject.userData.note, index: index - 1 });
                     let buttonColor = intersectedObject.material.color;
                     if (buttonColor.getHex() === 0xff0000) {
-                        console.log('red');
                         buttonColor.set(0xFFFFE0);
                     } else {
                         buttonColor.set(0xff0000);
                     }
-                    console.log(buttonColor);
+                    console.log(`Note added: ${intersectedObject.userData.note}, Index: ${index - 1}`);
+                }
+                if (intersectedObject.userData.isPlayButton) {
+                    console.log('Play button pressed');
+                    console.log('Note sequence:', noteSequence);
+                    playSequence(noteSequence);
                 }
             }
         });
+
+        function playSequence(sequence) {
+            let now = Tone.now();
+            sequence.forEach((item, index) => {
+                const { note, index: buttonIndex } = item;
+                const time = now + index * 0.5;
+                
+                // Schedule note playback
+                synth.triggerAttackRelease(note, '8n', time);
+
+                // Schedule light on
+                setTimeout(() => {
+                    const light = lights[buttonIndex + 1]; // Add 1 to buttonIndex
+                    if (light) {
+                        console.log(`Lighting up light ${buttonIndex + 1} for note ${note}`);
+                        light.material.color.set(0xff0000);
+                    }
+                }, (time - now) * 1000);
+
+                // Schedule light off
+                setTimeout(() => {
+                    const light = lights[buttonIndex + 1]; // Add 1 to buttonIndex
+                    if (light) {
+                        light.material.color.set(0x000000);
+                    }
+                }, (time - now + 0.3) * 1000);
+            });
+        }
 
         // Animation loop
         function animate() {

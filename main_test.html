@@ -51,7 +51,7 @@
         const controls = new THREE.OrbitControls(camera, renderer.domElement);
 
         // Set initial camera position
-        camera.position.set(0, 5, -10); // x, y, z
+        camera.position.set(0, 1.2, 0); // x, y, z
         const raycaster = new THREE.Raycaster();
         const mouse = new THREE.Vector2();
 
@@ -75,7 +75,6 @@
         loader.load('./static/assets/synth.glb', function (gltf) {
             scene.add(gltf.scene);
             synthObj = gltf;
-            console.log(synthObj);
 
             // Traverse the GLTF scene to find the buttons and lights
             gltf.scene.traverse((child) => {
@@ -83,19 +82,15 @@
                     const index = parseInt(child.name.split('-')[1], 10);
                     child.userData.note = getNoteFromIndex(index);
                     buttons[index] = child;
-                    console.log(child);
-                    console.log(`Found button: ${child.name} with note ${child.userData.note}`);
                 }
                 if (child.isMesh && child.name.startsWith('light-')) {
                     const index = parseInt(child.name.split('-')[1], 10);
                     lights[index] = child;
-                    console.log(`Found light: ${child.name}`);
                 }
                 if (child.isMesh && child.name === 'play-button') {
                     child.userData.isPlayButton = true;
                 }
             });
-
             console.log('Buttons:', buttons);
             console.log('Lights:', lights);
         }, undefined, function (error) {
@@ -140,7 +135,6 @@
                     console.log(`Note added: ${intersectedObject.userData.note}, Index: ${index - 1}`);
                 }
                 if (intersectedObject.userData.isPlayButton) {
-                    console.log('Play button pressed');
                     console.log('Note sequence:', noteSequence);
                     playSequence(noteSequence);
                 }
@@ -148,11 +142,14 @@
         });
 
         function playSequence(sequence) {
+            console.log('In func');
             let now = Tone.now();
+
+            console.log(lights);
             sequence.forEach((item, index) => {
                 const { note, index: buttonIndex } = item;
                 const time = now + index * 0.5;
-
+                console.log('In forEach');
                 // Schedule note playback
                 synth.triggerAttackRelease(note, '8n', time);
 
@@ -160,7 +157,6 @@
                 setTimeout(() => {
                     const light = lights[buttonIndex + 1]; // Add 1 to buttonIndex
                     if (light) {
-                        console.log(`Lighting up light ${buttonIndex + 1} for note ${note}`);
                         light.material.color.set(0xff0000);
                     }
                 }, (time - now) * 1000);

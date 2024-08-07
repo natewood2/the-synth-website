@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Synthesizer</title>
+    <link rel="stylesheet" href="./static/styles.css">
+</head>
+<body>
+    <h1 id="header">the synth website</h1>
+    <div id="menu">
+        <button id="menuButton" class="dropdown"><span>menu</span></button>
+        <div id="menuItems" class="dropdownContent">
+            <button class="menuItem dropdown">scenes</button>
+            <div id="sceneToggles" class="dropdownContent">
+                <button class="toggleButton" id="dayNightToggle">Day/Night</button>
+                <button class="toggleButton" id="roomToggle">room</button>
+                <button class="toggleButton" id="rainToggle">rain</button>
+                <button class="toggleButton" id="snowToggle">snow</button>
+                <button class="toggleButton" id="starToggle">stars</button>
+                <button class="toggleButton" id="spotlightToggle">spotlight</button>
+            </div>
+            <button class="menuItem dropdown">sequences</button>
+            <div id="sequenceToggles" class="dropdownContent">
+                <button class="toggleButton" id="rainToggle">fast</button>
+                <button class="toggleButton" id="snowToggle">super chill</button>
+                <button class="toggleButton" id="spotlightToggle">space vibes</button>
+            </div>
+        </div>
+    </div>
+    <script type="module" src="./static/scripts/menu.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/FontLoader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/geometries/TextGeometry.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.35/Tone.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+    <script type="module">
+        import { dayNight } from './static/scripts/dayandnight.js';
+        import { menuScenesSelector } from './static/scripts/menu.js';
+        import { boundaries } from './static/scripts/room.js';
+
+        // Set up scene, camera, and renderer
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
+
+        // Orbit controls
+        const controls = new THREE.OrbitControls(camera, renderer.domElement);
+
+        // Set initial camera position
+        camera.position.set(0, 5, -10); // x, y, z
+        const raycaster = new THREE.Raycaster();
+        const mouse = new THREE.Vector2();
+
+        // Synthesizer setup
+        const synth = new Tone.Synth().toDestination();
+
+        // Load texture
+        const textureLoader = new THREE.TextureLoader();
+        const synthTexture = textureLoader.load('./static/textures/Plastic005_1K-JPG_Color.jpg'); // Replace with your texture file path
+
+        // Scene Effects
+        menuScenesSelector(scene);
+        dayNight(scene, 'on'); // Set to day time by default
+
+        let synthObj;
+        // Load the GLTF model
+        const loader = new THREE.GLTFLoader();
+        loader.load('./static/assets/synth.glb', function (gltf) {
+            scene.add(gltf.scene);
+            synthObj = gltf;
+            console.log(synthObj);
+
+            // Traverse the GLTF scene to find the buttons and log their names
+            gltf.scene.traverse((child) => {
+                if (child.isMesh && child.name.startsWith('button-')) {
+                    child.userData.note = getNoteFromButton(child.name);
+                    console.log(`Found button: ${child}`);
+                }
+            });
+        }, undefined, function (error) {
+            console.error(error);
+        });
+
+        function getNoteFromButton(buttonName) {
+            switch (buttonName) {
+                case 'button-1': return 'C4';
+                case 'button-2': return 'D4';
+                case 'button-3': return 'E4';
+                case 'button-4': return 'F4';
+                case 'button-5': return 'G4';
+                case 'button-6': return 'A4';
+                case 'button-7': return 'B4';
+                case 'button-8': return 'C5';
+                default: return 'C4';
+            }
+        }
+
+        // Mouse event listener for raycaster
+        document.addEventListener('click', function(event) {
+            mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+            mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+            raycaster.setFromCamera(mouse, camera);
+            const intersects = raycaster.intersectObjects(scene.children, true);
+
+            if (intersects.length > 0) {
+                const intersectedObject = intersects[0].object;
+                if (intersectedObject.userData.note) {
+                    synth.triggerAttackRelease(intersectedObject.userData.note, '8n');
+                    let buttonColor = intersectedObject.material.color;
+                    if (buttonColor.getHex() === 0xff0000) {
+                        console.log('red');
+                        buttonColor.set(0xFFFFE0);
+                    } else {
+                        buttonColor.set(0xff0000);
+                    }
+                    console.log(buttonColor);
+                }
+            }
+        });
+
+        // Animation loop
+        function animate() {
+            requestAnimationFrame(animate);
+            controls.update();
+            renderer.render(scene, camera);
+        }
+        animate();
+
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+    </script>
+</body>
+</html>

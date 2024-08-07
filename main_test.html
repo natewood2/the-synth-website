@@ -69,7 +69,7 @@
         let synthObj;
         const buttons = [];
         const lights = [];
-        
+
         // Load the GLTF model
         const loader = new THREE.GLTFLoader();
         loader.load('./static/assets/synth.glb', function (gltf) {
@@ -83,6 +83,7 @@
                     const index = parseInt(child.name.split('-')[1], 10);
                     child.userData.note = getNoteFromIndex(index);
                     buttons[index] = child;
+                    console.log(child);
                     console.log(`Found button: ${child.name} with note ${child.userData.note}`);
                 }
                 if (child.isMesh && child.name.startsWith('light-')) {
@@ -151,7 +152,7 @@
             sequence.forEach((item, index) => {
                 const { note, index: buttonIndex } = item;
                 const time = now + index * 0.5;
-                
+
                 // Schedule note playback
                 synth.triggerAttackRelease(note, '8n', time);
 

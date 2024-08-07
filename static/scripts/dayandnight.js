@@ -14,11 +14,11 @@ export function dayNight(scene, action) {
   if (action === 'on') {
     // Day mode
     const dayColor = 0xffffff;
-    ambientLight = new THREE.AmbientLight(dayColor, 0.3);
+    ambientLight = new THREE.AmbientLight(dayColor, 1);
     scene.add(ambientLight);
 
     directionalLight = new THREE.DirectionalLight(dayColor, 1);
-    directionalLight.position.set(2, 10, 2).normalize();
+    directionalLight.position.set(2, 10, -10).normalize();
     scene.add(directionalLight);
   } else if (action === 'off') {
     // Night mode

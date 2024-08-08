@@ -129,8 +129,10 @@
     document.addEventListener('click', function(event) {
         mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
         mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
-        console.log(mouse.y)
-        mouse.y += .27;
+
+        let offset = 152.01 / window.innerHeight;
+        mouse.y += offset;
+
         raycaster.setFromCamera(mouse, camera);
         const intersects = raycaster.intersectObjects(scene.children, true);
 
@@ -216,6 +218,30 @@
         timeouts.push(setTimeout(() => playSequence(), noteSequence.length * 0.5 * 1000));
     }
 
+    // Load a font and create text geometry
+    // const fontLoader = new FontLoader();
+    // fontLoader.load('https://threejs.org/examples/fonts/helvetiker_regular.typeface.json', function (font) {
+    //     const textGeometry = new TextGeometry('Hello, Three.js!', {
+    //         font: font,
+    //         size: 1,
+    //         height: 0.2,
+    //         curveSegments: 12,
+    //         bevelEnabled: true,
+    //         bevelThickness: 0.1,
+    //         bevelSize: 0.05,
+    //         bevelOffset: 0,
+    //         bevelSegments: 5
+    //     });
+
+    //     const textMaterial = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
+    //     const textMesh = new THREE.Mesh(textGeometry, textMaterial);
+
+    //     textMesh.position.set(-2, 0, 0);  // Adjust position if needed
+    //     scene.add(textMesh);
+
+    //     animate();
+    // });
+
     // need to run the three.js
     function animate() {
         requestAnimationFrame(animate);
@@ -233,3 +259,4 @@
     </script>
 </body>
 </html>
+

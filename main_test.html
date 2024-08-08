@@ -54,13 +54,32 @@
         camera.position.set(0, 1.2, 0); // x, y, z
         const raycaster = new THREE.Raycaster();
         const mouse = new THREE.Vector2();
+        renderer.setClearColor(new THREE.Color('skyblue'));
 
         // Synthesizer setup
-        const synth = new Tone.Synth().toDestination();
+        // const synth = new Tone.PolySynth(Tone.Synth).toDestination();
+        // const synth = new Tone.NoiseSynth().toDestination();
+        // const synth = new Tone.Synth().toDestination();
+        // const synth = new Tone.AMSynth().toDestination();
+        // const synth = new Tone.FMSynth().toDestination();
+        const synth = new Tone.DuoSynth().toDestination();
+        // const synth = new Tone.MonoSynth().toDestination();
 
+
+
+
+        // effects
+        const reverb = new Tone.Reverb(1.5).toDestination();
+        const delay = new Tone.FeedbackDelay("8n", 0.5).toDestination();
+        const chorus = new Tone.Chorus(4, 2.5, 0.5).toDestination();
+        const autoWah = new Tone.AutoWah({ baseFrequency: 100, octaves: 6 }).toDestination();
+        const distortion = new Tone.Distortion(0.2).toDestination();
+
+        // effect chain
+        synth.chain(chorus, delay, reverb, autoWah, distortion, Tone.Destination);
         // Load texture
         const textureLoader = new THREE.TextureLoader();
-        const synthTexture = textureLoader.load('./static/textures/Plastic005_1K-JPG_Color.jpg'); // Replace with your texture file path
+        const synthTexture = textureLoader.load('./static/textures/Plastic005_1K-JPG_Color.jpg');
 
         // Scene Effects
         menuScenesSelector(scene);
@@ -76,116 +95,139 @@
             scene.add(gltf.scene);
             synthObj = gltf;
 
-            // Traverse the GLTF scene to find the buttons and lights
-            gltf.scene.traverse((child) => {
-                if (child.isMesh && child.name.startsWith('button-')) {
-                    const index = parseInt(child.name.split('-')[1], 10);
-                    child.userData.note = getNoteFromIndex(index);
-                    buttons[index] = child;
-                }
-                if (child.isMesh && child.name.startsWith('light-')) {
-                    const index = parseInt(child.name.split('-')[1], 10);
-                    lights[index] = child;
-                }
-                if (child.isMesh && child.name === 'play-button') {
-                    child.userData.isPlayButton = true;
-                }
-            });
-            console.log('Buttons:', buttons);
-            console.log('Lights:', lights);
-        }, undefined, function (error) {
-            console.error(error);
+        // Traverse the GLTF scene to find the buttons and lights
+        gltf.scene.traverse((child) => {
+            if (child.isMesh && child.name.startsWith('button-')) {
+                const index = parseInt(child.name.split('-')[1], 10);
+                child.userData.note = getNoteFromIndex(index);
+                buttons[index] = child;
+            }
+            if (child.isMesh && child.name.startsWith('light-')) {
+                const index = parseInt(child.name.split('-')[1], 10);
+                lights[index] = child;
+            }
+            if (child.isMesh && child.name === 'play-button') {
+                child.userData.isPlayButton = true;
+            }
         });
+        console.log('Buttons:', buttons);
+        console.log('Lights:', lights);
+    }, undefined, function (error) {
+        console.error(error);
+    });
 
-        function getNoteFromIndex(index) {
-            switch (index) {
-                case 1: return 'C4';
-                case 2: return 'D4';
-                case 3: return 'E4';
-                case 4: return 'F4';
-                case 5: return 'G4';
-                case 6: return 'A4';
-                case 7: return 'B4';
-                case 8: return 'C5';
-                default: return 'C4';
+    function getNoteFromIndex(index) {
+        const notes = ['C4', 'D4', 'E4', 'F4', 'G4', 'A4', 'B4', 'C5'];
+        return notes[index - 1] || 'C4';
+    }
+
+    let noteSequence = Array(8).fill(false);
+    let isPlaying = false;
+    let timeouts = [];
+
+    document.addEventListener('click', function(event) {
+        mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+        mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+        raycaster.setFromCamera(mouse, camera);
+        const intersects = raycaster.intersectObjects(scene.children, true);
+
+        if (intersects.length > 0) {
+            const intersectedObject = intersects[0].object;
+            if (intersectedObject.userData.note) {
+                const index = parseInt(intersectedObject.name.split('-')[1], 10) - 1;
+                noteSequence[index] = !noteSequence[index]; // Toggle the step
+                let buttonColor = intersectedObject.material.color;
+                buttonColor.set(noteSequence[index] ? 0xff0000 : 0xFFFFE0);
+                console.log(`Note toggled: ${intersectedObject.userData.note}, Index: ${index}, Active: ${noteSequence[index]}`);
+            }
+            if (intersectedObject.userData.isPlayButton) {
+                console.log('Note sequence:', noteSequence);
+                if (!isPlaying) {
+                    startSequence();
+                } else {
+                    stopSequence();
+                }
             }
         }
+    });
 
-        let noteSequence = [];
+    function startSequence() {
+        // Clear any existing timeouts
+        timeouts.forEach(clearTimeout);
+        timeouts = [];
 
-        // Mouse event listener for raycaster
-        document.addEventListener('click', function(event) {
-            mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
-            mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+        isPlaying = true;
+        playSequence();
+    }
 
-            raycaster.setFromCamera(mouse, camera);
-            const intersects = raycaster.intersectObjects(scene.children, true);
+    function stopSequence() {
+        isPlaying = false;
 
-            if (intersects.length > 0) {
-                const intersectedObject = intersects[0].object;
-                if (intersectedObject.userData.note) {
-                    const index = parseInt(intersectedObject.name.split('-')[1], 10);
-                    noteSequence.push({ note: intersectedObject.userData.note, index: index - 1 });
-                    let buttonColor = intersectedObject.material.color;
-                    if (buttonColor.getHex() === 0xff0000) {
-                        buttonColor.set(0xFFFFE0);
-                    } else {
-                        buttonColor.set(0xff0000);
-                    }
-                    console.log(`Note added: ${intersectedObject.userData.note}, Index: ${index - 1}`);
-                }
-                if (intersectedObject.userData.isPlayButton) {
-                    console.log('Note sequence:', noteSequence);
-                    playSequence(noteSequence);
-                }
+        // Clear all timeouts
+        timeouts.forEach(clearTimeout);
+        timeouts = [];
+
+        // Turn off all lights
+        lights.forEach(light => {
+            if (light) {
+                light.material.color.set(0x000000);
             }
         });
 
-        function playSequence(sequence) {
-            console.log('In func');
-            let now = Tone.now();
+        // Stop all playing notes
+        synth.releaseAll();
+    }
 
-            console.log(lights);
-            sequence.forEach((item, index) => {
-                const { note, index: buttonIndex } = item;
-                const time = now + index * 0.5;
-                console.log('In forEach');
-                // Schedule note playback
+    function playSequence() {
+        if (!isPlaying) return;
+
+        console.log('Playing sequence');
+        let now = Tone.now();
+
+        noteSequence.forEach((isActive, index) => {
+            const time = now + index * 0.5;
+            const buttonIndex = index;
+
+            timeouts.push(setTimeout(() => {
+                if (!isPlaying) return;
+                const light = lights[buttonIndex + 1];
+                if (light) {
+                    light.material.color.set(0xff0000);
+                }
+            }, (time - now) * 1000));
+
+            timeouts.push(setTimeout(() => {
+                if (!isPlaying) return;
+                const light = lights[buttonIndex + 1];
+                if (light) {
+                    light.material.color.set(0x000000);
+                }
+            }, (time - now + 0.3) * 1000));
+
+            if (isActive) {
+                const note = getNoteFromIndex(buttonIndex + 1);
                 synth.triggerAttackRelease(note, '8n', time);
-
-                // Schedule light on
-                setTimeout(() => {
-                    const light = lights[buttonIndex + 1]; // Add 1 to buttonIndex
-                    if (light) {
-                        light.material.color.set(0xff0000);
-                    }
-                }, (time - now) * 1000);
-
-                // Schedule light off
-                setTimeout(() => {
-                    const light = lights[buttonIndex + 1]; // Add 1 to buttonIndex
-                    if (light) {
-                        light.material.color.set(0x000000);
-                    }
-                }, (time - now + 0.3) * 1000);
-            });
-        }
-
-        // Animation loop
-        function animate() {
-            requestAnimationFrame(animate);
-            controls.update();
-            renderer.render(scene, camera);
-        }
-        animate();
-
-        // Handle window resize
-        window.addEventListener('resize', () => {
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
+            }
         });
 
+        timeouts.push(setTimeout(() => playSequence(), noteSequence.length * 0.5 * 1000));
+    }
+
+    // need to run the three.js
+    function animate() {
+        requestAnimationFrame(animate);
+        controls.update();
+        renderer.render(scene, camera);
+    }
+    animate();
+
+    // Handle window resize
+    window.addEventListener('resize', () => {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+    });
     </script>
 </body>
 </html>

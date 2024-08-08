@@ -93,6 +93,7 @@
         const loader = new THREE.GLTFLoader();
         loader.load('./static/assets/synth.glb', function (gltf) {
             scene.add(gltf.scene);
+            console.log(gltf);
             synthObj = gltf;
 
         // Traverse the GLTF scene to find the buttons and lights
@@ -128,7 +129,8 @@
     document.addEventListener('click', function(event) {
         mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
         mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
-
+        console.log(mouse.y)
+        mouse.y += .27;
         raycaster.setFromCamera(mouse, camera);
         const intersects = raycaster.intersectObjects(scene.children, true);
 

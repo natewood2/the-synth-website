@@ -76,28 +76,28 @@
 
         // Load the GLTF model
         const loader = new THREE.GLTFLoader();
-        loader.load('./static/assets/cabin.glb', function (gltf) {
+        // loader.load('./static/assets/cabin.glb', function (gltf) {
 
-            // Position the model
-            const position = { x: 0, y: -2.27, z: 1.3 }; // x = left/right y = -up/+down z = +front/-back
-            gltf.scene.position.set(position.x, position.y, position.z);
+        //     // Position the model
+        //     const position = { x: 0, y: -2.27, z: 1.3 }; // x = left/right y = -up/+down z = +front/-back
+        //     gltf.scene.position.set(position.x, position.y, position.z);
 
-            // Rotate the model counterclockwise 90 degrees around the y-axis
-            gltf.scene.rotation.y = Math.PI / 2;
+        //     // Rotate the model counterclockwise 90 degrees around the y-axis
+        //     gltf.scene.rotation.y = Math.PI / 2;
 
-            // Add the scaled and positioned model to the scene
-            scene.add(gltf.scene);
+        //     // Add the scaled and positioned model to the scene
+        //     scene.add(gltf.scene);
 
-            console.log('Cabin:', gltf);
-        }, undefined, function (error) {
-            console.error(error);
-        });
+        //     console.log('Cabin:', gltf);
+        // }, undefined, function (error) {
+        //     console.error(error);
+        // });
         loader.load('./static/assets/synth.glb', function (gltf) {
             // Position the model
-            const position = { x: 0, y: 0, z: 0 };
-            const scale = .2; // Change this value to scale the model
-            gltf.scene.scale.set(scale, scale, scale);
-            gltf.scene.position.set(position.x, position.y, position.z);
+            // const position = { x: 0, y: 0, z: 0 };
+            //const scale = .2; // Change this value to scale the model
+            // gltf.scene.scale.set(scale, scale, scale);
+            // gltf.scene.position.set(position.x, position.y, position.z);
             scene.add(gltf.scene);
             synthObj = gltf;
 

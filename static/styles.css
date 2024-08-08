@@ -71,7 +71,6 @@ canvas {
   right: 0;
   display: flex;
   flex-direction: column;
-  text-align: right;
   align-items: flex-end;
   margin-top: 20px;
   margin-right: 40px;
@@ -116,11 +115,12 @@ canvas {
 #menuItems {
   /* margin-top: 25px; */
   margin-right: -10px;
-  text-align: right;
+  text-align: left;
   padding: 0 10px;
   padding-bottom: 10px;
   border-bottom-left-radius: 20px;
   border-bottom-right-radius: 20px;
+  background-color: black;
 }
 
 .menuItem {
@@ -131,14 +131,12 @@ canvas {
 #sceneToggles,
 #sequenceToggles {
   margin-bottom: 10px;
-  /* Align items to the right */
 }
 
 .toggleButton {
   color: grey;
   height: 40px;
   min-width: 40px;
-  text-align: right;
 }
 
 @keyframes enter {

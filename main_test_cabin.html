@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Synthesizer</title>
+    <link rel="stylesheet" href="./static/styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <h1 id="header">the synth website</h1>
+    <div id="menu">
+        <button id="menuButton" class="dropdown"><span>menu</span></button>
+        <div id="menuItems" class="dropdownContent">
+            <button class="menuItem dropdown">scenes</button>
+            <div id="sceneToggles" class="dropdownContent">
+                <button class="toggleButton" id="dayNightToggle">Day/Night</button>
+                <button class="toggleButton" id="roomToggle">room</button>
+                <button class="toggleButton" id="rainToggle">rain</button>
+                <button class="toggleButton" id="snowToggle">snow</button>
+                <button class="toggleButton" id="starToggle">stars</button>
+                <button class="toggleButton" id="spotlightToggle">spotlight</button>
+            </div>
+            <button class="menuItem dropdown">sequences</button>
+            <div id="sequenceToggles" class="dropdownContent">
+                <button class="toggleButton" id="rainToggle">fast</button>
+                <button class="toggleButton" id="snowToggle">super chill</button>
+                <button class="toggleButton" id="spotlightToggle">space vibes</button>
+            </div>
+        </div>
+    </div>
+    <script type="module" src="./static/scripts/menu.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r152/examples/js/loaders/FontLoader.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r152/examples/js/geometries/TextGeometry.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/geometries/TextGeometry.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.35/Tone.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+    <script type="module">
+        import { dayNight } from './static/scripts/dayandnight.js';
+        import { menuScenesSelector } from './static/scripts/menu.js';
+        import { boundaries } from './static/scripts/room.js';
+
+        // Variables to use when updating screen
+        let font; // used to hold the font out of the loader scope
+        let tempoText;
+        let volumeText;
+        let sequenceText;
+
+        // Set up scene, camera, and renderer
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
+
+        // Orbit controls
+        const controls = new THREE.OrbitControls(camera, renderer.domElement);
+
+        // Set initial camera position
+        camera.position.set(0, 1.2, 0); // x, y, z
+        const raycaster = new THREE.Raycaster();
+        const mouse = new THREE.Vector2();
+        renderer.setClearColor(new THREE.Color('skyblue'));
+
+        const synths = [
+            new Tone.DuoSynth().toDestination(),
+            new Tone.Synth().toDestination(),
+            new Tone.AMSynth().toDestination(),
+            new Tone.FMSynth().toDestination(),
+            new Tone.MonoSynth().toDestination(),
+            new Tone.PolySynth().toDestination()
+        ];
+
+        let currentSynthIndex = 0;
+        let synth = synths[currentSynthIndex];
+
+        function switchSynth() {
+            currentSynthIndex = (currentSynthIndex + 1) % synths.length;
+            synth = synths[currentSynthIndex];
+            console.log(`Switched to synth: ${synths[currentSynthIndex]}`);
+        }
+
+        // effects
+        const reverb = new Tone.Reverb({
+            decay: 4,
+            preDelay: 0.5,
+            wet: 0.7
+        }).toDestination();
+
+        const delay = new Tone.FeedbackDelay("8n", 0.5).toDestination();
+
+        const chorus = new Tone.Chorus({
+            frequency: 1.5,
+            delayTime: 3.5,
+            depth: 0.7,
+            spread: 180,
+            wet: 0.5
+        }).toDestination();
+
+        const autoWah = new Tone.AutoWah({ baseFrequency: 100, octaves: 6 }).toDestination();
+        const distortion = new Tone.Distortion(0.2).toDestination();
+
+        // effect chain
+        synth.chain(chorus, delay, reverb, autoWah, Tone.Destination);
+        // Load texture
+        const textureLoader = new THREE.TextureLoader();
+        const synthTexture = textureLoader.load('./static/textures/Plastic005_1K-JPG_Color.jpg');
+
+        // Scene Effects
+        menuScenesSelector(scene);
+        dayNight(scene, 'on'); // Set to day time by default
+
+        const tempoOptions = [90, 120, 130, 140];
+        let currentTempoIndex = 1; // 1 fo 120 index
+
+        Tone.Transport.bpm.value = tempoOptions[currentTempoIndex];
+
+        let synthObj;
+        const buttons = [];
+        const lights = [];
+
+        // Load the GLTF model
+        const loader = new THREE.GLTFLoader();
+        loader.load('./static/assets/cabin.glb', function (gltf) {
+
+            // Position the model
+            const position = { x: 0, y: -2.27, z: 1.3 }; // x = left/right y = -up/+down z = +front/-back
+            gltf.scene.position.set(position.x, position.y, position.z);
+
+            // Rotate the model counterclockwise 90 degrees around the y-axis
+            gltf.scene.rotation.y = Math.PI / 2;
+
+            // Add the scaled and positioned model to the scene
+            scene.add(gltf.scene);
+
+            console.log('Cabin:', gltf);
+        }, undefined, function (error) {
+            console.error(error);
+        });
+        loader.load('./static/assets/synth.glb', function (gltf) {
+            // Position the model
+            const position = { x: 0, y: 0, z: 0 };
+            const scale = .2; // Change this value to scale the model
+            gltf.scene.scale.set(scale, scale, scale);
+            gltf.scene.position.set(position.x, position.y, position.z);
+            scene.add(gltf.scene);
+            console.log(gltf);
+            synthObj = gltf;
+
+        // Traverse the GLTF scene to find the buttons and lights
+        gltf.scene.traverse((child) => {
+            if (child.isMesh && child.name.startsWith('button-')) {
+                const index = parseInt(child.name.split('-')[1], 10);
+                child.userData.note = getNoteFromIndex(index);
+                buttons[index] = child;
+            } else if (child.isMesh && child.name.startsWith('light-')) {
+                const index = parseInt(child.name.split('-')[1], 10);
+                lights[index] = child;
+            } else if (child.isMesh && child.name === 'play-button') {
+                child.userData.isPlayButton = true;
+            } else if (child.isMesh && child.name === 'synth-button') {
+                child.userData.isSynthButton = true;
+            } else if (child.isMesh && child.name === 'tempo-up') {
+            child.userData.isTempoUpButton = true;
+            } else if (child.isMesh && child.name === 'tempo-down') {
+            child.userData.isTempoDownButton = true;
+            } else if (child.isMesh && child.name === 'volume-up') {
+                child.userData.isVolumeUpButton = true;
+            } else if (child.isMesh && child.name === 'volume-down') {
+                child.userData.isVolumeDownButton = true;
+            } else if (child.isMesh && child.name === 'clear-button') {
+                child.userData.isClearButton = true;
+            }
+        });
+        console.log('Buttons:', buttons);
+        console.log('Lights:', lights);
+        }, undefined, function (error) {
+            console.error(error);
+        });
+
+        const notes = ['C4', 'D4', 'E4', 'F4', 'G4', 'A4', 'B4', 'C5'];
+        function getNoteFromIndex(index) {
+            return notes[index - 1] || 'C4';
+        }
+
+        function updateTempo() {
+            const newTempo = tempoOptions[currentTempoIndex];
+            Tone.Transport.bpm.value = newTempo;
+            updateText(`${newTempo} bpm`, font, 'tempo');
+        }
+
+        function adjustVolume(buttonClicked) {
+            const amountToChange = 5;
+            if (buttonClicked === 'up') {
+                synth.volume.value += amountToChange;
+            } else if (buttonClicked == 'down') {
+                synth.volume.value -= amountToChange;
+            }
+            updateText(`Vol: ${Math.ceil(synth.volume.value)}`, font, 'volume');
+        }
+
+        function clearButtonColor() {
+            for (let index in buttons) {
+                buttons[index].material.color.set(0xFFF9CA);
+            }
+        }
+
+
+        let noteSequence = Array(8).fill(false);
+        let isPlaying = false;
+        let timeouts = [];
+
+        document.addEventListener('click', function(event) {
+            mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+            mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+            let offset = 152.01 / window.innerHeight;
+            mouse.y += offset;
+
+            raycaster.setFromCamera(mouse, camera);
+            const intersects = raycaster.intersectObjects(scene.children, true);
+
+            if (intersects.length > 0) {
+                const intersectedObject = intersects[0].object;
+                if (intersectedObject.userData.isSynthButton) {
+                    switchSynth();
+                } else if (intersectedObject.userData.note) {
+                    const index = parseInt(intersectedObject.name.split('-')[1], 10) - 1;
+                    noteSequence[index] = !noteSequence[index]; // Toggle the step
+                    let buttonColor = intersectedObject.material.color;
+                    buttonColor.set(noteSequence[index] ? 0xff0000 : 0xFFF9CA);
+                    let currentNotes = '';
+                    for (let i = 0; i < 8; i++) {
+                        if (noteSequence[i]) {
+                            currentNotes += ' ' + notes[i];
+                        }
+                    }
+                    updateText(currentNotes, font, 'sequence');
+                    console.log(`Note toggled: ${intersectedObject.userData.note}, Index: ${index}, Active: ${noteSequence[index]}`);
+                } else if (intersectedObject.userData.isPlayButton) {
+                    console.log('Note sequence:', noteSequence);
+                    if (!isPlaying) {
+                        startSequence();
+                    } else {
+                        stopSequence();
+                    }
+                } else if (intersectedObject.userData.isTempoUpButton) {
+                    if (currentTempoIndex < tempoOptions.length - 1) {
+                        currentTempoIndex++;
+                        updateTempo();
+                    }
+                } else if (intersectedObject.userData.isTempoDownButton) {
+                    if (currentTempoIndex > 0) {
+                        currentTempoIndex--;
+                        updateTempo();
+                    }
+                } else if (intersectedObject.userData.isVolumeUpButton) {
+                    adjustVolume('up');
+                } else if (intersectedObject.userData.isVolumeDownButton) {
+                    adjustVolume('down');
+                } else if (intersectedObject.userData.isClearButton) {
+                    console.log('clearing note array')
+                    noteSequence = Array(8).fill(false);
+                    stopSequence();
+                    clearButtonColor()
+                    updateText('', font, 'sequence');
+                }
+            }
+        });
+
+        function startSequence() {
+            // Clear any existing timeouts
+            timeouts.forEach(clearTimeout);
+            timeouts = [];
+
+            isPlaying = true;
+            playSequence();
+        }
+
+        function stopSequence() {
+            isPlaying = false;
+
+            // Clear all timeouts
+            timeouts.forEach(clearTimeout);
+            timeouts = [];
+
+            // Turn off all lights
+            lights.forEach(light => {
+                if (light) {
+                    light.material.color.set(0x000000);
+                }
+            });
+        }
+
+        function playSequence() {
+            if (!isPlaying) return;
+
+            console.log('Playing sequence');
+            let now = Tone.now();
+            const stepDuration = 60 / Tone.Transport.bpm.value;
+
+            noteSequence.forEach((isActive, index) => {
+                const time = now + index * stepDuration;
+                const buttonIndex = index;
+
+                timeouts.push(setTimeout(() => {
+                    if (!isPlaying) return;
+                    const light = lights[buttonIndex + 1];
+                    if (light) {
+                        light.material.color.set(0xff0000);
+                    }
+                }, (time - now) * 1000));
+
+                timeouts.push(setTimeout(() => {
+                    if (!isPlaying) return;
+                    const light = lights[buttonIndex + 1];
+                    if (light) {
+                        light.material.color.set(0x000000);
+                    }
+            }, (time - now + 0.3) * 1000));
+
+                if (isActive) {
+                    const note = getNoteFromIndex(buttonIndex + 1);
+                    synth.triggerAttackRelease(note, '8n', time);
+                }
+            });
+
+            timeouts.push(setTimeout(() => playSequence(), noteSequence.length * stepDuration * 1000));
+        }
+
+        // Load the font
+        const fontLoader = new THREE.FontLoader();
+        fontLoader.load('./static/assets/Digital-7_Regular.json', function (fontLoaded) {
+            font = fontLoaded;
+
+            setTimeout(() => {
+                updateText('Loading...', font, 'all');
+            }, 2000);
+            setTimeout(() => {
+                updateText('120 bpm', font, 'tempo');
+                updateText(`Vol: ${synth.volume.value}`, font, 'volume');
+                updateText('', font, 'sequence');
+            }, 3000);
+        });
+
+        function updateText(text, font, textToUpdate) {
+            const textGeometry = new THREE.TextGeometry(text, {
+                font: font,
+                size: 1,
+                height: 0.1, // z axis of letters
+                bevelEnabled: false
+            });
+            const scale = .03;
+            const rotation = -(Math.PI / 2);
+            const textMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000 });
+
+            if (textToUpdate ==='tempo' || textToUpdate === 'all') {
+                scene.remove(tempoText);
+                tempoText = new THREE.Mesh(textGeometry, textMaterial);
+                tempoText.rotation.x = rotation;
+                tempoText.scale.set(scale, scale, scale);
+                tempoText.position.set(0.1, 0.215, -0.2); //position.set(left/right, in/out, up/down)
+                scene.add(tempoText);
+            }
+            if (textToUpdate === 'volume' || textToUpdate === 'all') {
+                scene.remove(volumeText);
+                volumeText = new THREE.Mesh(textGeometry, textMaterial);
+                volumeText.rotation.x = rotation;
+                volumeText.scale.set(scale, scale, scale);
+                volumeText.position.set(0.4, 0.215, -0.2);
+                scene.add(volumeText);
+            }
+            if (textToUpdate === 'sequence' || textToUpdate === 'all') {
+                scene.remove(sequenceText);
+                sequenceText = new THREE.Mesh(textGeometry, textMaterial);
+                sequenceText.rotation.x = rotation;
+                sequenceText.scale.set(.04, .04, .04);
+                sequenceText.position.set(0.02, 0.215, -0.3);
+                scene.add(sequenceText);
+            }
+        }
+
+        // need to run the three.js
+        function animate() {
+            requestAnimationFrame(animate);
+            controls.update();
+            renderer.render(scene, camera);
+        }
+        animate();
+
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+    </script>
+</body>
+</html>
+

@@ -63,27 +63,46 @@
         const mouse = new THREE.Vector2();
         renderer.setClearColor(new THREE.Color('skyblue'));
 
-        // Synthesizer setup
-        // const synth = new Tone.PolySynth(Tone.Synth).toDestination();
-        // const synth = new Tone.NoiseSynth().toDestination();
-        // const synth = new Tone.Synth().toDestination();
-        // const synth = new Tone.AMSynth().toDestination();
-        // const synth = new Tone.FMSynth().toDestination();
-        const synth = new Tone.DuoSynth().toDestination();
-        // const synth = new Tone.MonoSynth().toDestination();
+        const synths = [
+            new Tone.DuoSynth().toDestination(),
+            new Tone.Synth().toDestination(),
+            new Tone.AMSynth().toDestination(),
+            new Tone.FMSynth().toDestination(),
+            new Tone.MonoSynth().toDestination(),
+            new Tone.PolySynth().toDestination()
+        ];
 
+        let currentSynthIndex = 0;
+        let synth = synths[currentSynthIndex];
 
-
+        function switchSynth() {
+            currentSynthIndex = (currentSynthIndex + 1) % synths.length;
+            synth = synths[currentSynthIndex];
+            console.log(`Switched to synth: ${synths[currentSynthIndex]}`);
+        }
 
         // effects
-        const reverb = new Tone.Reverb(1.5).toDestination();
+        const reverb = new Tone.Reverb({
+            decay: 4,
+            preDelay: 0.5,
+            wet: 0.7
+        }).toDestination();
+
         const delay = new Tone.FeedbackDelay("8n", 0.5).toDestination();
-        const chorus = new Tone.Chorus(4, 2.5, 0.5).toDestination();
+    
+        const chorus = new Tone.Chorus({
+            frequency: 1.5,
+            delayTime: 3.5,
+            depth: 0.7,
+            spread: 180,
+            wet: 0.5
+        }).toDestination();
+
         const autoWah = new Tone.AutoWah({ baseFrequency: 100, octaves: 6 }).toDestination();
         const distortion = new Tone.Distortion(0.2).toDestination();
 
         // effect chain
-        synth.chain(chorus, delay, reverb, autoWah, distortion, Tone.Destination);
+        synth.chain(chorus, delay, reverb, autoWah, Tone.Destination);
         // Load texture
         const textureLoader = new THREE.TextureLoader();
         const synthTexture = textureLoader.load('./static/textures/Plastic005_1K-JPG_Color.jpg');
@@ -117,6 +136,9 @@
             if (child.isMesh && child.name === 'play-button') {
                 child.userData.isPlayButton = true;
             }
+            if (child.isMesh && child.name === 'synth-button') {
+                child.userData.isSynthButton = true;
+            }
         });
         console.log('Buttons:', buttons);
         console.log('Lights:', lights);
@@ -145,6 +167,9 @@
 
             if (intersects.length > 0) {
                 const intersectedObject = intersects[0].object;
+                if (intersectedObject.userData.isSynthButton) {
+                    switchSynth();
+                }
                 if (intersectedObject.userData.note) {
                     const index = parseInt(intersectedObject.name.split('-')[1], 10) - 1;
                     noteSequence[index] = !noteSequence[index]; // Toggle the step

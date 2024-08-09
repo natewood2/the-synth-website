@@ -31,7 +31,8 @@
     <script type="module" src="./static/scripts/menu.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/FontLoader.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r152/examples/js/loaders/FontLoader.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r152/examples/js/geometries/TextGeometry.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/geometries/TextGeometry.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.35/Tone.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
@@ -39,6 +40,12 @@
         import { dayNight } from './static/scripts/dayandnight.js';
         import { menuScenesSelector } from './static/scripts/menu.js';
         import { boundaries } from './static/scripts/room.js';
+
+        // Variables to use when updating screen
+        let font; // used to hold the font out of the loader scope
+        let tempoText;
+        let volumeText;
+        let sequenceText;
 
         // Set up scene, camera, and renderer
         const scene = new THREE.Scene();
@@ -113,149 +120,183 @@
         });
         console.log('Buttons:', buttons);
         console.log('Lights:', lights);
-    }, undefined, function (error) {
-        console.error(error);
-    });
+        }, undefined, function (error) {
+            console.error(error);
+        });
 
-    function getNoteFromIndex(index) {
         const notes = ['C4', 'D4', 'E4', 'F4', 'G4', 'A4', 'B4', 'C5'];
-        return notes[index - 1] || 'C4';
-    }
-
-    let noteSequence = Array(8).fill(false);
-    let isPlaying = false;
-    let timeouts = [];
-
-    document.addEventListener('click', function(event) {
-        mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
-        mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
-
-        let offset = 152.01 / window.innerHeight;
-        mouse.y += offset;
-
-        raycaster.setFromCamera(mouse, camera);
-        const intersects = raycaster.intersectObjects(scene.children, true);
-
-        if (intersects.length > 0) {
-            const intersectedObject = intersects[0].object;
-            if (intersectedObject.userData.note) {
-                const index = parseInt(intersectedObject.name.split('-')[1], 10) - 1;
-                noteSequence[index] = !noteSequence[index]; // Toggle the step
-                let buttonColor = intersectedObject.material.color;
-                buttonColor.set(noteSequence[index] ? 0xff0000 : 0xFFFFE0);
-                console.log(`Note toggled: ${intersectedObject.userData.note}, Index: ${index}, Active: ${noteSequence[index]}`);
-            }
-            if (intersectedObject.userData.isPlayButton) {
-                console.log('Note sequence:', noteSequence);
-                if (!isPlaying) {
-                    startSequence();
-                } else {
-                    stopSequence();
-                }
-            }
+        function getNoteFromIndex(index) {
+            return notes[index - 1] || 'C4';
         }
-    });
 
-    function startSequence() {
-        // Clear any existing timeouts
-        timeouts.forEach(clearTimeout);
-        timeouts = [];
+        let noteSequence = Array(8).fill(false);
+        let isPlaying = false;
+        let timeouts = [];
 
-        isPlaying = true;
-        playSequence();
-    }
+        document.addEventListener('click', function(event) {
+            mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+            mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
 
-    function stopSequence() {
-        isPlaying = false;
+            let offset = 152.01 / window.innerHeight;
+            mouse.y += offset;
 
-        // Clear all timeouts
-        timeouts.forEach(clearTimeout);
-        timeouts = [];
+            raycaster.setFromCamera(mouse, camera);
+            const intersects = raycaster.intersectObjects(scene.children, true);
 
-        // Turn off all lights
-        lights.forEach(light => {
-            if (light) {
-                light.material.color.set(0x000000);
+            if (intersects.length > 0) {
+                const intersectedObject = intersects[0].object;
+                if (intersectedObject.userData.note) {
+                    const index = parseInt(intersectedObject.name.split('-')[1], 10) - 1;
+                    noteSequence[index] = !noteSequence[index]; // Toggle the step
+                    let buttonColor = intersectedObject.material.color;
+                    buttonColor.set(noteSequence[index] ? 0xff0000 : 0xFFF9CA);
+                    let currentNotes = '';
+                    for (let i = 0; i < 8; i++) {
+                        if (noteSequence[i]) {
+                            currentNotes += ' ' + notes[i];
+                        }
+                    }
+                    updateText(currentNotes, font, 'sequence');
+                    console.log(`Note toggled: ${intersectedObject.userData.note}, Index: ${index}, Active: ${noteSequence[index]}`);
+                } else if (intersectedObject.userData.isPlayButton) {
+                    console.log('Note sequence:', noteSequence);
+                    if (!isPlaying) {
+                        startSequence();
+                    } else {
+                        stopSequence();
+                    }
+                }
             }
         });
 
-        // Stop all playing notes
-        synth.releaseAll();
-    }
+        function startSequence() {
+            // Clear any existing timeouts
+            timeouts.forEach(clearTimeout);
+            timeouts = [];
 
-    function playSequence() {
-        if (!isPlaying) return;
+            isPlaying = true;
+            playSequence();
+        }
 
-        console.log('Playing sequence');
-        let now = Tone.now();
+        function stopSequence() {
+            isPlaying = false;
 
-        noteSequence.forEach((isActive, index) => {
-            const time = now + index * 0.5;
-            const buttonIndex = index;
+            // Clear all timeouts
+            timeouts.forEach(clearTimeout);
+            timeouts = [];
 
-            timeouts.push(setTimeout(() => {
-                if (!isPlaying) return;
-                const light = lights[buttonIndex + 1];
-                if (light) {
-                    light.material.color.set(0xff0000);
-                }
-            }, (time - now) * 1000));
-
-            timeouts.push(setTimeout(() => {
-                if (!isPlaying) return;
-                const light = lights[buttonIndex + 1];
+            // Turn off all lights
+            lights.forEach(light => {
                 if (light) {
                     light.material.color.set(0x000000);
                 }
-            }, (time - now + 0.3) * 1000));
+            });
 
-            if (isActive) {
-                const note = getNoteFromIndex(buttonIndex + 1);
-                synth.triggerAttackRelease(note, '8n', time);
-            }
+            // Stop all playing notes
+            synth.releaseAll();
+        }
+
+        function playSequence() {
+            if (!isPlaying) return;
+
+            console.log('Playing sequence');
+            let now = Tone.now();
+
+            noteSequence.forEach((isActive, index) => {
+                const time = now + index * 0.5;
+                const buttonIndex = index;
+
+                timeouts.push(setTimeout(() => {
+                    if (!isPlaying) return;
+                    const light = lights[buttonIndex + 1];
+                    if (light) {
+                        light.material.color.set(0xff0000);
+                    }
+                }, (time - now) * 1000));
+
+                timeouts.push(setTimeout(() => {
+                    if (!isPlaying) return;
+                    const light = lights[buttonIndex + 1];
+                    if (light) {
+                        light.material.color.set(0x000000);
+                    }
+                }, (time - now + 0.3) * 1000));
+
+                if (isActive) {
+                    const note = getNoteFromIndex(buttonIndex + 1);
+                    synth.triggerAttackRelease(note, '8n', time);
+                }
+            });
+
+            timeouts.push(setTimeout(() => playSequence(), noteSequence.length * 0.5 * 1000));
+        }
+
+        // Load the font
+        const fontLoader = new THREE.FontLoader();
+        fontLoader.load('./static/assets/Digital-7_Regular.json', function (fontLoaded) {
+            font = fontLoaded;
+
+            setTimeout(() => {
+                updateText('Loading...', font, 'all');
+            }, 2000);
+            setTimeout(() => {
+                updateText('0 bpm', font, 'tempo');
+                updateText('vol: 50', font, 'volume');
+                updateText('', font, 'sequence');
+            }, 3000);
         });
 
-        timeouts.push(setTimeout(() => playSequence(), noteSequence.length * 0.5 * 1000));
-    }
+        function updateText(text, font, textToUpdate) {
+            const textGeometry = new THREE.TextGeometry(text, {
+                font: font,
+                size: 1,
+                height: 0.1, // z axis of letters
+                bevelEnabled: false
+            });
+            const scale = .03;
+            const rotation = -(Math.PI / 2);
+            const textMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000 });
 
-    // Load a font and create text geometry
-    // const fontLoader = new FontLoader();
-    // fontLoader.load('https://threejs.org/examples/fonts/helvetiker_regular.typeface.json', function (font) {
-    //     const textGeometry = new TextGeometry('Hello, Three.js!', {
-    //         font: font,
-    //         size: 1,
-    //         height: 0.2,
-    //         curveSegments: 12,
-    //         bevelEnabled: true,
-    //         bevelThickness: 0.1,
-    //         bevelSize: 0.05,
-    //         bevelOffset: 0,
-    //         bevelSegments: 5
-    //     });
+            if (textToUpdate ==='tempo' || textToUpdate === 'all') {
+                scene.remove(tempoText);
+                tempoText = new THREE.Mesh(textGeometry, textMaterial);
+                tempoText.rotation.x = rotation;
+                tempoText.scale.set(scale, scale, scale);
+                tempoText.position.set(0.1, 0.215, -0.2); //position.set(left/right, in/out, up/down)
+                scene.add(tempoText);
+            }
+            if (textToUpdate === 'volume' || textToUpdate === 'all') {
+                scene.remove(volumeText);
+                volumeText = new THREE.Mesh(textGeometry, textMaterial);
+                volumeText.rotation.x = rotation;
+                volumeText.scale.set(scale, scale, scale);
+                volumeText.position.set(0.4, 0.215, -0.2);
+                scene.add(volumeText);
+            }
+            if (textToUpdate === 'sequence' || textToUpdate === 'all') {
+                scene.remove(sequenceText);
+                sequenceText = new THREE.Mesh(textGeometry, textMaterial);
+                sequenceText.rotation.x = rotation;
+                sequenceText.scale.set(.04, .04, .04);
+                sequenceText.position.set(0.02, 0.215, -0.3);
+                scene.add(sequenceText);
+            }
+        }
 
-    //     const textMaterial = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
-    //     const textMesh = new THREE.Mesh(textGeometry, textMaterial);
+        // need to run the three.js
+        function animate() {
+            requestAnimationFrame(animate);
+            controls.update();
+            renderer.render(scene, camera);
+        }
+        animate();
 
-    //     textMesh.position.set(-2, 0, 0);  // Adjust position if needed
-    //     scene.add(textMesh);
-
-    //     animate();
-    // });
-
-    // need to run the three.js
-    function animate() {
-        requestAnimationFrame(animate);
-        controls.update();
-        renderer.render(scene, camera);
-    }
-    animate();
-
-    // Handle window resize
-    window.addEventListener('resize', () => {
-        camera.aspect = window.innerWidth / window.innerHeight;
-        camera.updateProjectionMatrix();
-        renderer.setSize(window.innerWidth, window.innerHeight);
-    });
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
     </script>
 </body>
 </html>

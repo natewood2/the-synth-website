@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>3D Synthesizer</title>
     <link rel="stylesheet" href="./static/styles.css">
-    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
 </head>
 <body>
     <h1 id="header">the synth website</h1>
@@ -112,11 +111,6 @@
         menuScenesSelector(scene);
         dayNight(scene, 'on'); // Set to day time by default
 
-        const tempoOptions = [90, 120, 130, 140];
-        let currentTempoIndex = 1; // 1 fo 120 index
-
-        Tone.Transport.bpm.value = tempoOptions[currentTempoIndex];
-
         let synthObj;
         const buttons = [];
         const lights = [];
@@ -141,10 +135,6 @@
                 child.userData.isPlayButton = true;
             } else if (child.isMesh && child.name === 'synth-button') {
                 child.userData.isSynthButton = true;
-            } else if (child.isMesh && child.name === 'tempo-up') {
-            child.userData.isTempoUpButton = true;
-            } else if (child.isMesh && child.name === 'tempo-down') {
-            child.userData.isTempoDownButton = true;
             } else if (child.isMesh && child.name === 'volume-up') {
                 child.userData.isVolumeUpButton = true;
             } else if (child.isMesh && child.name === 'volume-down') {
@@ -161,23 +151,15 @@
         function getNoteFromIndex(index) {
             return notes[index - 1] || 'C4';
         }
-
-        function updateTempo() {
-            const newTempo = tempoOptions[currentTempoIndex];
-            Tone.Transport.bpm.value = newTempo;
-            updateText(`${newTempo} bpm`, font, 'tempo');
-        }
-
         function adjustVolume(buttonClicked) {
             const amountToChange = 5;
+            console.log(synth.volume.value);
             if (buttonClicked === 'up') {
                 synth.volume.value += amountToChange;
             } else if (buttonClicked == 'down') {
                 synth.volume.value -= amountToChange;
             }
-            updateText(`Vol: ${Math.ceil(synth.volume.value)}`, font, 'volume');
         }
-
 
         let noteSequence = Array(8).fill(false);
         let isPlaying = false;
@@ -197,7 +179,14 @@
                 const intersectedObject = intersects[0].object;
                 if (intersectedObject.userData.isSynthButton) {
                     switchSynth();
-                } else if (intersectedObject.userData.note) {
+                }
+                if (intersectedObject.userData.isVolumeUpButton) {
+                    adjustVolume('up');
+                }
+                if (intersectedObject.userData.isVolumeDownButton) {
+                    adjustVolume('down');
+                }
+                if (intersectedObject.userData.note) {
                     const index = parseInt(intersectedObject.name.split('-')[1], 10) - 1;
                     noteSequence[index] = !noteSequence[index]; // Toggle the step
                     let buttonColor = intersectedObject.material.color;
@@ -217,20 +206,6 @@
                     } else {
                         stopSequence();
                     }
-                } else if (intersectedObject.userData.isTempoUpButton) {
-                    if (currentTempoIndex < tempoOptions.length - 1) {
-                        currentTempoIndex++;
-                        updateTempo();
-                    }
-                } else if (intersectedObject.userData.isTempoDownButton) {
-                    if (currentTempoIndex > 0) {
-                        currentTempoIndex--;
-                        updateTempo();
-                    }
-                } else if (intersectedObject.userData.isVolumeUpButton) {
-                    adjustVolume('up');
-                } else if (intersectedObject.userData.isVolumeDownButton) {
-                    adjustVolume('down');
                 }
             }
         });
@@ -258,6 +233,7 @@
                 }
             });
 
+            // Stop all playing notes
             synth.releaseAll();
         }
 
@@ -266,10 +242,9 @@
 
             console.log('Playing sequence');
             let now = Tone.now();
-            const stepDuration = 60 / Tone.Transport.bpm.value;
 
             noteSequence.forEach((isActive, index) => {
-                const time = now + index * stepDuration;
+                const time = now + index * 0.5;
                 const buttonIndex = index;
 
                 timeouts.push(setTimeout(() => {
@@ -286,7 +261,7 @@
                     if (light) {
                         light.material.color.set(0x000000);
                     }
-            }, (time - now + 0.3) * 1000));
+                }, (time - now + 0.3) * 1000));
 
                 if (isActive) {
                     const note = getNoteFromIndex(buttonIndex + 1);
@@ -294,7 +269,7 @@
                 }
             });
 
-            timeouts.push(setTimeout(() => playSequence(), noteSequence.length * stepDuration * 1000));
+            timeouts.push(setTimeout(() => playSequence(), noteSequence.length * 0.5 * 1000));
         }
 
         // Load the font

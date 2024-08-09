@@ -149,6 +149,8 @@
                 child.userData.isVolumeUpButton = true;
             } else if (child.isMesh && child.name === 'volume-down') {
                 child.userData.isVolumeDownButton = true;
+            } else if (child.isMesh && child.name === 'clear-button') {
+                child.userData.isClearButton = true;
             }
         });
         console.log('Buttons:', buttons);
@@ -176,6 +178,12 @@
                 synth.volume.value -= amountToChange;
             }
             updateText(`Vol: ${Math.ceil(synth.volume.value)}`, font, 'volume');
+        }
+
+        function clearButtonColor() {
+            for (let index in buttons) {
+                buttons[index].material.color.set(0xFFF9CA);
+            }
         }
 
 
@@ -231,6 +239,12 @@
                     adjustVolume('up');
                 } else if (intersectedObject.userData.isVolumeDownButton) {
                     adjustVolume('down');
+                } else if (intersectedObject.userData.isClearButton) {
+                    console.log('clearing note array')
+                    noteSequence = Array(8).fill(false);
+                    stopSequence();
+                    clearButtonColor()
+                    updateText('', font, 'sequence');
                 }
             }
         });
@@ -257,8 +271,6 @@
                     light.material.color.set(0x000000);
                 }
             });
-
-            synth.releaseAll();
         }
 
         function playSequence() {

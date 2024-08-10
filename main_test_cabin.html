@@ -8,24 +8,30 @@
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
 </head>
 <body>
-    <h1 id="header">the synth website</h1>
-    <div id="menu">
-        <button id="menuButton" class="dropdown"><span>menu</span></button>
-        <div id="menuItems" class="dropdownContent">
-            <button class="menuItem dropdown">scenes</button>
-            <div id="sceneToggles" class="dropdownContent">
-                <button class="toggleButton" id="dayNightToggle">Day/Night</button>
-                <button class="toggleButton" id="roomToggle">room</button>
-                <button class="toggleButton" id="rainToggle">rain</button>
-                <button class="toggleButton" id="snowToggle">snow</button>
-                <button class="toggleButton" id="starToggle">stars</button>
-                <button class="toggleButton" id="spotlightToggle">spotlight</button>
-            </div>
-            <button class="menuItem dropdown">sequences</button>
-            <div id="sequenceToggles" class="dropdownContent">
-                <button class="toggleButton" id="rainToggle">fast</button>
-                <button class="toggleButton" id="snowToggle">super chill</button>
-                <button class="toggleButton" id="spotlightToggle">space vibes</button>
+    <!-- Loading Screen -->
+    <div id="loading-screen">
+        <h1 id="logo">the synth website</h1>
+        <h3 id="loading-text">0%</h3>
+    </div>
+
+    <div id="main-content" style="display: none;">
+        <h1 id="header">the synth website</h1>
+        <div id="menu">
+            <button id="menuButton" class="dropdown"><span>menu</span></button>
+            <div id="menuItems" class="dropdownContent">
+                <button class="menuItem dropdown">scenes</button>
+                <div id="sceneToggles" class="dropdownContent">
+                    <button class="toggleButton" id="dayNightToggle">Day/Night</button>
+                    <button class="toggleButton" id="rainToggle">rain</button>
+                    <button class="toggleButton" id="snowToggle">snow</button>
+                    <button class="toggleButton" id="starToggle">stars</button>
+                </div>
+                <button class="menuItem dropdown">sequences</button>
+                <div id="sequenceToggles" class="dropdownContent">
+                    <button class="toggleButton" id="rainToggle">fast</button>
+                    <button class="toggleButton" id="snowToggle">super chill</button>
+                    <button class="toggleButton" id="spotlightToggle">space vibes</button>
+                </div>
             </div>
         </div>
     </div>
@@ -45,6 +51,28 @@
     <script type="module">
         import { dayNight } from './static/scripts/dayandnight.js';
         import { menuScenesSelector } from './static/scripts/menu.js';
+
+        document.addEventListener('DOMContentLoaded', function () {
+            const loadingText = document.getElementById('loading-text');
+            const loadingScreen = document.getElementById('loading-screen');
+            const mainContent = document.getElementById('main-content');
+
+            let progress = 0;
+            const interval = setInterval(function () {
+                progress += 1;
+                if (progress > 100) progress = 100;
+
+                loadingText.textContent = Math.round(progress) + '%';
+
+                if (progress === 100) {
+                    clearInterval(interval);
+                    setTimeout(function () {
+                        loadingScreen.style.display = 'none';
+                        mainContent.style.display = 'block';
+                    }, 500);
+                }
+            }, 400);
+        });
 
         // Variables to use when updating screen
         let font; // used to hold the font out of the loader scope
@@ -83,7 +111,6 @@
         function switchSynth() {
             currentSynthIndex = (currentSynthIndex + 1) % synths.length;
             synth = synths[currentSynthIndex];
-            console.log(`Switched to synth: ${synths[currentSynthIndex]}`);
         }
 
         // effects
@@ -143,18 +170,17 @@
             // Add the scaled and positioned model to the scene
             scene.add(gltf.scene);
 
-            console.log('Cabin:', gltf);
+            console.log('Cabin Loaded');
         }, undefined, function (error) {
             console.error(error);
         });
-        loader.load('./static/assets/synth.glb', function (gltf) {
+        loader.load('./static/assets/synth_compressed.glb', function (gltf) {
             // Position the model
             const position = { x: 0, y: 0, z: 0 };
             const scale = .2; // Change this value to scale the model
             gltf.scene.scale.set(scale, scale, scale);
             gltf.scene.position.set(position.x, position.y, position.z);
             scene.add(gltf.scene);
-            console.log(gltf);
             synthObj = gltf;
 
         // Traverse the GLTF scene to find the buttons and lights
@@ -182,8 +208,6 @@
                 child.userData.isClearButton = true;
             }
         });
-        console.log('Buttons:', buttons);
-        console.log('Lights:', lights);
         }, undefined, function (error) {
             console.error(error);
         });
@@ -246,9 +270,7 @@
                         }
                     }
                     updateText(currentNotes, font, 'sequence');
-                    console.log(`Note toggled: ${intersectedObject.userData.note}, Index: ${index}, Active: ${noteSequence[index]}`);
                 } else if (intersectedObject.userData.isPlayButton) {
-                    console.log('Note sequence:', noteSequence);
                     if (!isPlaying) {
                         startSequence();
                     } else {
@@ -269,7 +291,6 @@
                 } else if (intersectedObject.userData.isVolumeDownButton) {
                     adjustVolume('down');
                 } else if (intersectedObject.userData.isClearButton) {
-                    console.log('clearing note array')
                     noteSequence = Array(8).fill(false);
                     stopSequence();
                     clearButtonColor()
@@ -305,7 +326,6 @@
         function playSequence() {
             if (!isPlaying) return;
 
-            console.log('Playing sequence');
             let now = Tone.now();
             const stepDuration = 60 / Tone.Transport.bpm.value;
 

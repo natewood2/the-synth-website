@@ -39,8 +39,8 @@
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
 
     <!-- New to this file -->
-    <script src="https://threejs.org/examples/js/libs/draco/draco_decoder.js"></script>
-    <script src="https://threejs.org/examples/js/loaders/DRACOLoader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/libs/draco/draco_decoder.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/DRACOLoader.js"></script>
 
     <script type="module">
         import { dayNight } from './static/scripts/dayandnight.js';
@@ -129,9 +129,9 @@
         const loader = new THREE.GLTFLoader();
         // Initialize the DRACOLoader
         const dracoLoader = new THREE.DRACOLoader();
-        dracoLoader.setDecoderPath('https://threejs.org/examples/js/libs/draco/'); // Path to Draco decoder
+        dracoLoader.setDecoderPath('https://www.gstatic.com/draco/v1/decoders/'); // Path to Draco decoder
         loader.setDRACOLoader(dracoLoader);
-        loader.load('./static/assets/small_cabin.glb', function (gltf) {
+        loader.load('./static/assets/small_cabin_compressed.glb', function (gltf) {
 
             // Position the model
             const position = { x: 0, y: -2.27, z: 1.3 }; // x = left/right y = -up/+down z = +front/-back

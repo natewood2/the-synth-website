@@ -53,6 +53,7 @@
     <script type="module">
         import { dayNight } from './static/scripts/dayandnight.js';
         import { menuScenesSelector } from './static/scripts/menu.js';
+        import drumPadCity from './static/scripts/drumpadcity.js';
     // Loader logic
         document.addEventListener('DOMContentLoaded', function () {
             const loadingText = document.getElementById('loading-text');
@@ -153,6 +154,8 @@
         }, undefined, function (error) {
             console.error(error);
         });
+
+        drumPadCity(scene, loader);
 
 
         // Variables to use when updating screen

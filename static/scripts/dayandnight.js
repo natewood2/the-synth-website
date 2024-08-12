@@ -1,5 +1,6 @@
 let ambientLight;
 let directionalLight;
+let lampLight;
 let texture;
 let skyColor;
 // Load in an image to be used as the distant background
@@ -25,21 +26,25 @@ export function dayNight(renderer, scene, action) {
     // Day mode (Sunlight)
     texture = day;
     skyColor = 0xa3c0d7;
-    ambientLight = new THREE.AmbientLight(sunColor, 0.5);
+    ambientLight = new THREE.AmbientLight(sunColor, 1);
     scene.add(ambientLight);
     directionalLight = new THREE.DirectionalLight(sunColor, 1);
-    directionalLight.position.set(2, 10, -10).normalize();
+    directionalLight.position.set(0, 4, 2).normalize();
     scene.add(directionalLight);
   } else if (action === 'off') {
     // Evening mode
     texture = night;
     skyColor = 0x1f2123;
-    ambientLight = new THREE.AmbientLight(eveningColor, 0.8);
+    ambientLight = new THREE.AmbientLight(eveningColor, 1);
     scene.add(ambientLight);
 
-    directionalLight = new THREE.DirectionalLight(eveningColor, 0.8);
-    directionalLight.position.set(2, 10, 2).normalize();
+    directionalLight = new THREE.DirectionalLight(eveningColor, 1);
+    directionalLight.position.set(0, 4, 2).normalize();
     scene.add(directionalLight);
+
+    lampLight = new THREE.DirectionalLight(eveningColor, 1);
+    lampLight.position.set(0, 0, 0).normalize();
+    scene.add(lampLight);
   }
 
   renderer.setClearColor(skyColor);

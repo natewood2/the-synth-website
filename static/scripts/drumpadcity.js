@@ -8,7 +8,7 @@ export default function drumPadCity(scene, loader) {
     // Add the scaled and positioned model to the scene
     scene.add(gltf.scene);
     console.log(gltf);
-    
+
   }, undefined, function (error) {
     console.error(error);
   });

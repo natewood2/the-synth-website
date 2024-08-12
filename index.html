@@ -76,6 +76,10 @@
                 }
             }, 400);
         });
+
+        document.addEventListener("touchstart", function () {
+            console.log('You touched me');
+        });
     // Scene setup
         // Set up scene, camera, and renderer
         const scene = new THREE.Scene();
@@ -258,7 +262,6 @@
         document.addEventListener('click', function (event) {
             mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
             mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
-
             let offset = 152.01 / window.innerHeight;
             mouse.y += offset;
 

@@ -34,10 +34,10 @@ export function dayNight(renderer, scene, action) {
     // Evening mode
     texture = night;
     skyColor = 0x1f2123;
-    ambientLight = new THREE.AmbientLight(eveningColor, 0.3);
+    ambientLight = new THREE.AmbientLight(eveningColor, 0.8);
     scene.add(ambientLight);
 
-    directionalLight = new THREE.DirectionalLight(eveningColor, 0.5);
+    directionalLight = new THREE.DirectionalLight(eveningColor, 0.8);
     directionalLight.position.set(2, 10, 2).normalize();
     scene.add(directionalLight);
   }

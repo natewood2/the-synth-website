@@ -32,7 +32,7 @@ document.addEventListener('DOMContentLoaded', function () {
   });
 });
 
-export function menuScenesSelector(scene) {
+export function menuScenesSelector(scene, renderer) {
   // map to access specific functions for each effect
   const idMap = {
     'dayNightToggle': dayNight,
@@ -64,10 +64,20 @@ export function menuScenesSelector(scene) {
       const sceneFunc = idMap[toggle.id];
       if (sceneFunc) {
         if (activeEffects[toggle.id]) {
+          if (toggle.id === 'dayNightToggle' && activeEffects['dayNightToggle'] === true) {
+            dayNight(renderer, scene, 'off');
+            activeEffects['dayNightToggle'] = false;
+            return;
+          }
           // Turn off the effect
           sceneFunc(scene, 'off');
           activeEffects[toggle.id] = false;
         } else {
+          if (toggle.id === 'dayNightToggle' && activeEffects['dayNightToggle'] === false) {
+            dayNight(renderer, scene, 'on');
+            activeEffects['dayNightToggle'] = true;
+            return;
+          }
           // Turn on the effect
           sceneFunc(scene, 'on');
           activeEffects[toggle.id] = true;

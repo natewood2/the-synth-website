@@ -12,14 +12,9 @@ export function snow(scene, action) {
   }
 
   const snowGeometry = new THREE.BufferGeometry();
-  const snowCount = 5000;
+  const snowCount = 50000;
   const snowPositions = new Float32Array(snowCount * 3);
-  const speed = .5;
-  for (let i = 0; i < snowCount; i++) {
-    snowPositions[i * 3] = Math.random() * 200 - 100;
-    snowPositions[i * 3 + 1] = Math.random() * 250 - 120;
-    snowPositions[i * 3 + 2] = Math.random() * 200 - 100;
-  }
+  const speed = .1;
 
   snowGeometry.setAttribute('position', new THREE.BufferAttribute(snowPositions, 3));
   const snowMaterial = new THREE.PointsMaterial({
@@ -53,7 +48,7 @@ export function snow(scene, action) {
       if (positions[i + 1] < - 100) {
         positions[i + 1] = Math.random() * 200 - 100; // Random Y position
         positions[i] = Math.random() * 200 - 100; // Randomize X position
-        positions[i + 2] = Math.random() * 200 - 100; // Randomize Z position
+        positions[i + 2] = Math.random() * 99 - 100; // Randomize Z position
       }
     }
     snowParticles.geometry.attributes.position.needsUpdate = true;

@@ -1,33 +1,68 @@
 let ambientLight;
 let directionalLight;
+let texture;
+let skyColor;
+// Load in an image to be used as the distant background
+const geometry = new THREE.PlaneGeometry(300, 100); // width/height
+const textureLoader = new THREE.TextureLoader();
+const day = textureLoader.load('./static/assets/mountains foggy.png');
+const night = textureLoader.load('./static/assets/mountains foggy night.png');
+const sunColor = 0xfff7e8; // Warm yellowish color
+const eveningColor = 0xffa07a; // Soft orange color
 
-export function dayNight(scene, action) {
+export function dayNight(renderer, scene, action) {
   if (ambientLight || directionalLight) {
-    scene.remove(directionalLight)
+    scene.remove(directionalLight);
     scene.remove(ambientLight);
-    directionalLight.dispose()
+    directionalLight.dispose();
     ambientLight.dispose();
     ambientLight = undefined;
     directionalLight = undefined;
   }
 
-  if (action === 'on') {
-    // Day mode
-    const dayColor = 0xffffff;
-    ambientLight = new THREE.AmbientLight(dayColor, 1);
-    scene.add(ambientLight);
 
-    directionalLight = new THREE.DirectionalLight(dayColor, 1);
+  if (action === 'on') {
+    // Day mode (Sunlight)
+    texture = day;
+    skyColor = 0xa3c0d7;
+    ambientLight = new THREE.AmbientLight(sunColor, 0.5);
+    scene.add(ambientLight);
+    directionalLight = new THREE.DirectionalLight(sunColor, 1);
     directionalLight.position.set(2, 10, -10).normalize();
     scene.add(directionalLight);
   } else if (action === 'off') {
-    // Night mode
-    const nightColor = 0xB5D2ED;
-    ambientLight = new THREE.AmbientLight(nightColor, 0.2);
+    // Evening mode
+    texture = night;
+    skyColor = 0x1f2123;
+    ambientLight = new THREE.AmbientLight(eveningColor, 0.3);
     scene.add(ambientLight);
 
-    directionalLight = new THREE.DirectionalLight(nightColor, .3);
+    directionalLight = new THREE.DirectionalLight(eveningColor, 0.5);
     directionalLight.position.set(2, 10, 2).normalize();
     scene.add(directionalLight);
   }
+
+  renderer.setClearColor(skyColor);
+  const material = new THREE.MeshBasicMaterial({ map: texture });
+  // Original plane
+  const plane1 = new THREE.Mesh(geometry, material);
+  plane1.position.z = -70;  // distance from camera
+  plane1.position.y = 30;
+  scene.add(plane1);
+
+  // Left plane
+  const plane2 = new THREE.Mesh(geometry, material);
+  plane2.rotation.y = Math.PI / 2;
+  plane2.position.x = -150;
+  plane2.position.y = 12;
+  plane2.position.z = -70;
+  scene.add(plane2);
+
+  // Right plane
+  const plane3 = new THREE.Mesh(geometry, material);
+  plane3.rotation.y = -Math.PI / 2;
+  plane3.position.x = 150;
+  plane3.position.y = 10;
+  plane3.position.z = -70;
+  scene.add(plane3);
 }

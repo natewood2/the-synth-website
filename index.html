@@ -15,8 +15,8 @@
     <div id="loading-screen">
         <h3 id="loading-text">0%</h3>
     </div>
-
-    <div id="main-content" style="display: none">
+<!-- style="display: none" -->
+    <div id="main-content" >
         <h1 id="header">the synth website</h1>
         <div id="menu">
             <button id="menuButton" class="dropdown"><span>menu</span></button>
@@ -90,7 +90,7 @@
         camera.position.set(0, 1.2, 0); // x, y, z
         const raycaster = new THREE.Raycaster();
         const mouse = new THREE.Vector2();
-        renderer.setClearColor(new THREE.Color('skyblue'));
+
 
     // Load Models
         const loader = new THREE.GLTFLoader();
@@ -154,6 +154,7 @@
             console.error(error);
         });
 
+
         // Variables to use when updating screen
         let font; // used to hold the font out of the loader scope
         let tempoText;
@@ -202,13 +203,10 @@
 
         // effect chain
         synth.chain(chorus, delay, reverb, autoWah, Tone.Destination);
-        // Load texture
-        const textureLoader = new THREE.TextureLoader();
-        const synthTexture = textureLoader.load('./static/textures/Plastic005_1K-JPG_Color.jpg');
 
         // Scene Effects
-        menuScenesSelector(scene);
-        dayNight(scene, 'on'); // Set to day time by default
+        menuScenesSelector(scene, renderer);
+        dayNight(renderer, scene, 'on'); // Set to day time by default
 
         const tempoOptions = [90, 120, 130, 140];
         let currentTempoIndex = 1; // 1 fo 120 index

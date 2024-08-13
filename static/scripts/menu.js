@@ -1,6 +1,5 @@
 import { rain } from './rain.js';
 import { snow } from './snow.js';
-import { stars } from './stars.js';
 import { dayNight } from './dayandnight.js';
 
 document.addEventListener('DOMContentLoaded', function () {
@@ -37,16 +36,14 @@ export function menuScenesSelector(scene, renderer) {
   const idMap = {
     'dayNightToggle': dayNight,
     'rainToggle': rain,
-    'snowToggle': snow,
-    'starToggle': stars
+    'snowToggle': snow
   };
 
   // State to track active effects
   const activeEffects = {
     'dayNightToggle': true,
     'rainToggle': false,
-    'snowToggle': false,
-    'starToggle': false
+    'snowToggle': false
   };
 
   const toggles = document.querySelectorAll('.toggleButton');
@@ -54,10 +51,12 @@ export function menuScenesSelector(scene, renderer) {
     toggle.addEventListener('click', () => {
       // Check to not have rain/snow on at the same time
       if (toggle.id === 'rainToggle' && activeEffects['snowToggle']) {
+        document.getElementById('snowToggle').style.color = 'grey';
         snow(scene, 'off');
         activeEffects['snowToggle'] = false;
       } else if (toggle.id === 'snowToggle' && activeEffects['rainToggle']) {
         rain(scene, 'off');
+        document.getElementById('rainToggle').style.color = 'grey';
         activeEffects['rainToggle'] = false;
       }
 

@@ -12,7 +12,7 @@ export function snow(scene, action) {
   }
 
   const snowGeometry = new THREE.BufferGeometry();
-  const snowCount = 50000;
+  const snowCount = 30000;
   const snowPositions = new Float32Array(snowCount * 3);
   const speed = .1;
 
@@ -46,7 +46,7 @@ export function snow(scene, action) {
       positions[i + 1] -= 0.1 + Math.random() * speed;
       positions[i] += driftDirections[i]; // side drift
       if (positions[i + 1] < - 100) {
-        positions[i + 1] = Math.random() * 200 - 100; // Random Y position
+        positions[i + 1] = Math.random() * 150 - 100; // Random Y position
         positions[i] = Math.random() * 200 - 100; // Randomize X position
         positions[i + 2] = Math.random() * 99 - 100; // Randomize Z position
       }

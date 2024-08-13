@@ -12,7 +12,7 @@
 <body>
     <!-- Loading Screen -->
     <!-- style="height: 100vh" -->
-    <div id="loading-screen">
+    <div id="loading-screen" style="height: 100vh">
         <h1 id="logo">the synth website</h1>
         <h3 id="loading-text">0%</h3>
     </div>
@@ -43,15 +43,16 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r152/examples/js/geometries/TextGeometry.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/geometries/TextGeometry.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
-
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/15.1.2/Tone.js"></script>
     <!-- New to this file -->
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/libs/draco/draco_decoder.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/DRACOLoader.js"></script>
 
+    <script type="module" src="./static/scripts/drumpadcity.js"></script>
     <script type="module">
         import { dayNight } from './static/scripts/dayandnight.js';
         import { menuScenesSelector } from './static/scripts/menu.js';
-        import drumPadCity, { initializeDrumSequencer, handleDrumInteraction, startDrumSequence, stopDrumSequence } from './static/scripts/drumpadcity.js';
+        import { drumPadCity, stopDrumSequence, startDrumSequence, handleDrumInteraction } from './static/scripts/drumpadcity.js';
     // Loader logic
         document.addEventListener('DOMContentLoaded', function () {
             const loadingText = document.getElementById('loading-text');
@@ -104,7 +105,7 @@
         loader.load('./static/assets/small_cabin.glb', function (gltf) {
 
             // Position the model
-            const position = { x: 0, y: -2.27, z: 1.3 }; // x = left/right y = -up/+down z = +front/-back
+            const position = { x: -0.15, y: -2.27, z: 1.3 }; // x = left/right y = -up/+down z = +front/-back
             gltf.scene.position.set(position.x, position.y, position.z);
 
             // Rotate the model counterclockwise 90 degrees around the y-axis
@@ -122,12 +123,10 @@
         loader.load('./static/assets/synth_compressed.glb', function (gltf) {
             // Position the model
             const position = { x: 0, y: 0, z: 0 };
-            console.log('we got here')
             const scale = .2; // Change this value to scale the model
             gltf.scene.scale.set(scale, scale, scale);
             gltf.scene.position.set(position.x, position.y, position.z);
             scene.add(gltf.scene);
-            synthObj = gltf;
 
             // Traverse the GLTF scene to find the buttons and lights
             gltf.scene.traverse((child) => {
@@ -219,7 +218,6 @@
 
         Tone.Transport.bpm.value = tempoOptions[currentTempoIndex];
 
-        let synthObj;
         const buttons = [];
         const lights = [];
 

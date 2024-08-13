@@ -1,30 +1,46 @@
-import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.module.js';
-import * as Tone from 'https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.35/Tone.js';
+const drumSteps = 12;
+let currentDrumInstrument = 'kick';
+let isDrumPlaying = false;
 
-export const drumSteps = 12;
-export let currentDrumInstrument = 'kick';
-export let isDrumPlaying = false;
-
-export const drumSequenceData = {
+const drumSequenceData = {
     kick: Array.from({ length: drumSteps }, () => false),
     snare: Array.from({ length: drumSteps }, () => false),
     hat: Array.from({ length: drumSteps }, () => false),
 };
 
-export const drumPads = [];
-export const drumSelectionLights = [];
-export let drumPlayer;
+const drumPads = [];
+const drumSelectionLights = [];
+let drumPlayer;
 
-const raycaster = new THREE.Raycaster();
-const mouse = new THREE.Vector2();
 
-export function initializeDrumSequencer(drumScene) {
-    drumPlayer = new Tone.Players({
-        kick: 'Samples/kick.wav',
-        snare: 'Samples/snare.wav',
-        hat: 'Samples/hi-hat.wav',
-    }).toDestination();
+// Load the glb file and place in scene
+export function drumPadCity(scene, loader, modelPath) {
+  loader.load(modelPath, function (gltf) {
+    const position = { x: .3, y: 0, z: 0 };
+    const scale = .02; // Change this value to scale the model
+    gltf.scene.scale.set(scale, scale, scale);
+    gltf.scene.position.set(position.x, position.y, position.z);
+    gltf.scene.rotation.y = Math.PI;
+    // Add the scaled and positioned model to the scene
+    scene.add(gltf.scene);
+    console.log('Drum pad glb loaded');
+    initializeDrumSequencer(gltf.scene);
+  }, undefined, function (error) {
+    console.error(error);
+  });
+}
 
+// Put tone sounds to each button
+function initializeDrumSequencer(drumScene) {
+  console.log('Tone in drum init:');
+  console.log(Tone);
+  drumPlayer = new Tone.Players({
+    kick: 'Samples/kick.wav',
+    snare: 'Samples/snare.wav',
+    hat: 'Samples/hi-hat.wav',
+  }).toDestination();
+  console.log(`drumPlayer: `)
+  console.log(drumPlayer)
     drumScene.traverse((child) => {
         if (child.isMesh) {
             if (child.name.startsWith('pad-')) {
@@ -43,9 +59,42 @@ export function initializeDrumSequencer(drumScene) {
             }
         }
     });
-
     selectDrumInstrument('kick');
 }
+
+// Turn the light on for whatever instrument is selected
+function selectDrumInstrument(instrument) {
+  currentDrumInstrument = instrument;
+  updateDrumPadVisuals();
+
+  drumSelectionLights.forEach(light => {
+    if (light) {
+      light.material.emissive.setHex(0x000000);
+    }
+  });
+
+  const instrumentToLightIndex = {
+    'kick': 0,
+    'snare': 1,
+    'hat': 2
+  };
+
+  const lightIndex = instrumentToLightIndex[instrument];
+  if (drumSelectionLights[lightIndex]) {
+    drumSelectionLights[lightIndex].material.emissive.setHex(0xff0000);
+  }
+}
+
+
+function updateDrumPadVisuals() {
+  drumPads.forEach((pad, index) => {
+    if (pad) {
+      const isActive = drumSequenceData[currentDrumInstrument][index];
+      pad.material.color.setHex(isActive ? 0xff0000 : 0xFFF9CA);
+    }
+  });
+}
+
 
 export function handleDrumInteraction(intersectedObject) {
   if (intersectedObject.userData.padIndex !== undefined) {
@@ -59,36 +108,6 @@ export function handleDrumInteraction(intersectedObject) {
   }
 }
 
-function updateDrumPadVisuals() {
-  drumPads.forEach((pad, index) => {
-      if (pad) {
-          const isActive = drumSequenceData[currentDrumInstrument][index];
-          pad.material.color.setHex(isActive ? 0xff0000 : 0xFFF9CA);
-      }
-  });
-}
-
-function selectDrumInstrument(instrument) {
-  currentDrumInstrument = instrument;
-  updateDrumPadVisuals();
-
-  drumSelectionLights.forEach(light => {
-      if (light) {
-          light.material.emissive.setHex(0x000000);
-      }
-  });
-
-  const instrumentToLightIndex = {
-      'kick': 0,
-      'snare': 1,
-      'hat': 2
-  };
-
-  const lightIndex = instrumentToLightIndex[instrument];
-  if (drumSelectionLights[lightIndex]) {
-      drumSelectionLights[lightIndex].material.emissive.setHex(0xff0000);
-  }
-}
 
 function clearDrumSequence() {
   Object.keys(drumSequenceData).forEach(instrument => {
@@ -138,33 +157,17 @@ export function stopDrumSequence() {
   }
 }
 
-export default function drumPadCity(scene, loader, modelPath) {
-  loader.load(modelPath, function (gltf) {
-    const position = { x: .3, y: 0, z: 0 };
-    const scale = .02; // Change this value to scale the model
-    gltf.scene.scale.set(scale, scale, scale);
-    gltf.scene.position.set(position.x, position.y, position.z);
-    gltf.scene.rotation.y = Math.PI;
-    // Add the scaled and positioned model to the scene
-    scene.add(gltf.scene);
-    console.log('Drum pad city loaded');
-    initializeDrumSequencer(gltf.scene);
-  }, undefined, function (error) {
-    console.error(error);
-  });
-}
-
-window.addEventListener('mousemove', function (event) {
-  mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
-  mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
-}, false);
+// window.addEventListener('mousemove', function (event) {
+//   mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+//   mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+// }, false);
 
 // Mouse click event listener
-window.addEventListener('click', function () {
-  raycaster.setFromCamera(mouse, camera);
-  const intersects = raycaster.intersectObjects(scene.children, true);
+// window.addEventListener('click', function () {
+//   raycaster.setFromCamera(mouse, camera);
+//   const intersects = raycaster.intersectObjects(scene.children, true);
 
-  if (intersects.length > 0) {
-      handleDrumInteraction(intersects[0].object);
-  }
-}, false);
+//   if (intersects.length > 0) {
+//       handleDrumInteraction(intersects[0].object);
+//   }
+// }, false);

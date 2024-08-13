@@ -16,14 +16,13 @@ let drumPlayer;
 // Load the glb file and place in scene
 export function drumPadCity(scene, loader, modelPath) {
   loader.load(modelPath, function (gltf) {
-    const position = { x: .3, y: 0, z: 0 };
+    const position = { x: .2, y: 0, z: 0 };
     const scale = .02; // Change this value to scale the model
     gltf.scene.scale.set(scale, scale, scale);
     gltf.scene.position.set(position.x, position.y, position.z);
     gltf.scene.rotation.y = Math.PI;
     // Add the scaled and positioned model to the scene
     scene.add(gltf.scene);
-    console.log('Drum pad glb loaded');
     initializeDrumSequencer(gltf.scene);
   }, undefined, function (error) {
     console.error(error);
@@ -32,15 +31,11 @@ export function drumPadCity(scene, loader, modelPath) {
 
 // Put tone sounds to each button
 function initializeDrumSequencer(drumScene) {
-  console.log('Tone in drum init:');
-  console.log(Tone);
   drumPlayer = new Tone.Players({
     kick: 'Samples/kick.wav',
     snare: 'Samples/snare.wav',
     hat: 'Samples/hi-hat.wav',
   }).toDestination();
-  console.log(`drumPlayer: `)
-  console.log(drumPlayer)
     drumScene.traverse((child) => {
         if (child.isMesh) {
             if (child.name.startsWith('pad-')) {

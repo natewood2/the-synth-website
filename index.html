@@ -102,8 +102,8 @@
         const dracoLoader = new THREE.DRACOLoader();
         dracoLoader.setDecoderPath('./static/draco/'); // Path to your local Draco decoder
         loader.setDRACOLoader(dracoLoader); // Path to Draco decoder
-        
-        loader.load('./static/assets/small_cabin_compressed.glb', function (gltf) {
+
+        loader.load('./static/assets/small_cabin.glb', function (gltf) {
 
             // Position the model
             const position = { x: -0.15, y: -2.27, z: 1.3 }; // x = left/right y = -up/+down z = +front/-back
@@ -285,9 +285,13 @@
                     updateText(currentNotes, font, 'sequence');
                 } else if (intersectedObject.userData.isPlayButton) {
                     if (!isPlaying) {
-                        startSequence();
-                        startDrumSequence();
-                        console.log('we got here')
+                        // Start the audio context if it is not already started
+                        Tone.start().then(() => {
+                            startSequence();
+                            startDrumSequence();
+                        }).catch((error) => {
+                            console.error('Failed to start audio context:', error);
+                        });
                     } else {
                         stopSequence();
                         stopDrumSequence();

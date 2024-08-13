@@ -29,13 +29,14 @@
                 </div>
                 <button class="menuItem dropdown">sequences</button>
                 <div id="sequenceToggles" class="dropdownContent">
-                    <button class="toggleButton" id="rainToggle">fast</button>
-                    <button class="toggleButton" id="snowToggle">super chill</button>
-                    <button class="toggleButton" id="spotlightToggle">space vibes</button>
+                    <button class="toggleButton" id="fast">fast</button>
+                    <button class="toggleButton" id="chill">super chill</button>
+                    <button class="toggleButton" id="space">space vibes</button>
                 </div>
             </div>
         </div>
     </div>
+    <script type="module" src="./static/scripts/sequences.js"></script>
     <script type="module" src="./static/scripts/menu.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
@@ -120,13 +121,14 @@
         });
 
 
-        loader.load('./static/assets/synth_compressed.glb', function (gltf) {
+        loader.load('./static/assets/synth.glb', function (gltf) {
             // Position the model
             const position = { x: 0, y: 0, z: 0 };
             const scale = .2; // Change this value to scale the model
             gltf.scene.scale.set(scale, scale, scale);
             gltf.scene.position.set(position.x, position.y, position.z);
             scene.add(gltf.scene);
+            console.log('synth loaded');
 
             // Traverse the GLTF scene to find the buttons and lights
             gltf.scene.traverse((child) => {

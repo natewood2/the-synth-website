@@ -2,6 +2,7 @@ const drumSteps = 12;
 let currentDrumInstrument = 'kick';
 let isDrumPlaying = false;
 
+// causing lag when switching, need to check out
 const drumSequenceData = {
     kick: Array.from({ length: drumSteps }, () => false),
     snare: Array.from({ length: drumSteps }, () => false),
@@ -13,15 +14,15 @@ const drumSelectionLights = [];
 let drumPlayer;
 
 
-// Load the glb file and place in scene
+// Loading the .glb 
 export function drumPadCity(scene, loader, modelPath) {
   loader.load(modelPath, function (gltf) {
     const position = { x: .2, y: 0, z: 0 };
-    const scale = .02; // Change this value to scale the model
+    const scale = .02; // correct size
     gltf.scene.scale.set(scale, scale, scale);
     gltf.scene.position.set(position.x, position.y, position.z);
     gltf.scene.rotation.y = Math.PI;
-    // Add the scaled and positioned model to the scene
+    // testing scaling
     scene.add(gltf.scene);
     initializeDrumSequencer(gltf.scene);
   }, undefined, function (error) {
@@ -29,7 +30,7 @@ export function drumPadCity(scene, loader, modelPath) {
   });
 }
 
-// Put tone sounds to each button
+// tone initialization which downloaded samples
 function initializeDrumSequencer(drumScene) {
   drumPlayer = new Tone.Players({
     kick: 'Samples/kick.wav',
@@ -57,7 +58,7 @@ function initializeDrumSequencer(drumScene) {
     selectDrumInstrument('kick');
 }
 
-// Turn the light on for whatever instrument is selected
+// updates drum
 function selectDrumInstrument(instrument) {
   currentDrumInstrument = instrument;
   updateDrumPadVisuals();
@@ -151,18 +152,3 @@ export function stopDrumSequence() {
       });
   }
 }
-
-// window.addEventListener('mousemove', function (event) {
-//   mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
-//   mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
-// }, false);
-
-// Mouse click event listener
-// window.addEventListener('click', function () {
-//   raycaster.setFromCamera(mouse, camera);
-//   const intersects = raycaster.intersectObjects(scene.children, true);
-
-//   if (intersects.length > 0) {
-//       handleDrumInteraction(intersects[0].object);
-//   }
-// }, false);

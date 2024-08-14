@@ -281,12 +281,6 @@ document.addEventListener('click', function (event) {
             noteSequence[index] = !noteSequence[index]; // Toggle the step
             let buttonColor = intersectedObject.material.color;
             buttonColor.set(noteSequence[index] ? 0xff0000 : 0xFFF9CA);
-            // let currentNotes = '';
-            // for (let i = 0; i < 8; i++) {
-            //     if (noteSequence[i]) {
-            //         currentNotes += ' ' + notes[i];
-            //     }
-            // }
             updateText(synthTextUpdate(), 'sequence');
             setSynthState(noteSequence);
         } else if (intersectedObject.userData.isPlayButton) {
@@ -318,7 +312,6 @@ document.addEventListener('click', function (event) {
             adjustVolume('down');
         } else if (intersectedObject.userData.isClearButton) {
             stopSequence();
-            // clearDrumSequence();
             clearButtonColor();
             setSynthState(Array(8).fill(false));
             updateText('', 'sequence');

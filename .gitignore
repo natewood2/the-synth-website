@@ -1,4 +1,3 @@
 compose-dev.yaml
 
-static/assets/small_cabin.glb
-static/assets/small_cabin_compressed.glb
+static/assets/cabin_only.glb

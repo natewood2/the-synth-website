@@ -54,6 +54,7 @@
         import { dayNight } from './static/scripts/dayandnight.js';
         import { menuScenesSelector } from './static/scripts/menu.js';
         import { drumPadCity, stopDrumSequence, startDrumSequence, handleDrumInteraction } from './static/scripts/drumpadcity.js';
+
     // Loader logic
         document.addEventListener('DOMContentLoaded', function () {
             const loadingText = document.getElementById('loading-text');
@@ -80,6 +81,7 @@
         document.addEventListener("touchstart", function () {
             console.log('You touched me');
         });
+
     // Scene setup
         // Set up scene, camera, and renderer
         const scene = new THREE.Scene();
@@ -103,7 +105,7 @@
         dracoLoader.setDecoderPath('./static/draco/'); // Path to your local Draco decoder
         loader.setDRACOLoader(dracoLoader); // Path to Draco decoder
 
-        loader.load('./static/assets/small_cabin.glb', function (gltf) {
+        loader.load('./static/assets/cabin_only.glb', function (gltf) {
 
             // Position the model
             const position = { x: -0.25, y: -2.27, z: 1.3 }; // x = left/right y = -up/+down z = +front/-back
@@ -119,6 +121,23 @@
         }, undefined, function (error) {
             console.error(error);
         });
+
+        loader.load('./static/assets/cabin_yard.glb', function (gltf) {
+
+            // Position the model
+            const position = { x: -0.25, y: -2.27, z: 1.3 }; // x = left/right y = -up/+down z = +front/-back
+            gltf.scene.position.set(position.x, position.y, position.z);
+
+            // Rotate the model counterclockwise 90 degrees around the y-axis
+            gltf.scene.rotation.y = Math.PI / 2;
+
+            // Add the scaled and positioned model to the scene
+            scene.add(gltf.scene);
+
+            console.log('Yard Loaded');
+        }, undefined, function (error) {
+            console.error(error);
+            });
 
 
         loader.load('./static/assets/synth.glb', function (gltf) {

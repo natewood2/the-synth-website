@@ -113,11 +113,9 @@ canvas {
 }
 
 #menuItems {
-  /* margin-top: 25px; */
-  margin-right: -10px;
-  text-align: left;
-  padding: 0 10px;
-  padding-bottom: 10px;
+  padding: 10px;
+  padding-right: 100px;
+  width: 100px;
   border-bottom-left-radius: 20px;
   border-bottom-right-radius: 20px;
   background-color: black;
@@ -131,29 +129,29 @@ canvas {
 #sceneToggles,
 #sequenceToggles {
   margin-bottom: 10px;
+  padding-right: 80px;
 }
 
 .toggleButton {
   color: grey;
   height: 40px;
-  min-width: 40px;
 }
 
 @keyframes enter {
   from {
-    transform: translateY(-20%);
+    transform: translateX(100%);
     opacity: 0;
   }
 
   to {
-    transform: translateY(0);
+    transform: translateX(50%);
     opacity: 1;
   }
 }
 
 @keyframes exit {
   from {
-    transform: translateY(0);
+    transform: translateX(50%);
     display: flex;
     flex-direction: column;
     align-items: flex-end;
@@ -161,7 +159,7 @@ canvas {
   }
 
   to {
-    transform: translateY(-20%);
+    transform: translateX(100%);
     display: none;
     flex-direction: column;
     align-items: flex-end;

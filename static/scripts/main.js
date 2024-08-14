@@ -1,7 +1,6 @@
 import { dayNight } from './dayandnight.js';
 import { menuScenesSelector } from './menu.js';
 import { drumPadCity, stopDrumSequence, startDrumSequence, handleDrumInteraction } from './drumpadcity.js';
-import { setSynthState } from './sequences.js'
 
 // Loader logic
 document.addEventListener('DOMContentLoaded', function () {
@@ -125,7 +124,7 @@ loader.load('static/assets/synth.glb', function (gltf) {
     console.error(error);
 });
 
-// drumPadCity(scene, loader, '../assets/drumpadcity.glb');
+drumPadCity(scene, loader, 'static/assets/drumpadcity.glb');
 
 
 // Variables to use when updating screen
@@ -224,6 +223,18 @@ let noteSequence = setSynthState();
 let isPlaying = false;
 let timeouts = [];
 console.log(noteSequence);
+
+export function setSynthState(noteArray) {
+  // Load saved state from local storage
+  const synthState = JSON.parse(localStorage.getItem('synthNotes'));
+  // Find which sequence to use
+  const sequenceToUse = noteArray || synthState || Array(8).fill(false);
+  localStorage.setItem('synthNotes', JSON.stringify(sequenceToUse));
+  console.log(`sequenceToUse set to: ${sequenceToUse}`);
+
+  // buttonsArray = document.querySelectorAll('a');
+  return sequenceToUse;
+}
 
 document.addEventListener('click', function (event) {
     mouse.x = (event.clientX / window.innerWidth) * 2 - 1;

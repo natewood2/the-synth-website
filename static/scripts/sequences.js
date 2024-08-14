@@ -27,6 +27,8 @@ document.addEventListener('DOMContentLoaded', function () {
     if (buttonState['fast'] === false) {
       //Turning on
       buttonState['fast'] = true;
+      buttonState['vibes'] = false;
+      buttonState['chill'] = true;
 
       synthNoteSequence = [true, false, true, false, true, false, true, false]; //Change this to set synth notes
       tempoIndex = 3; //set tempo index from main file
@@ -61,6 +63,8 @@ document.addEventListener('DOMContentLoaded', function () {
     if (buttonState['chill'] === false) {
       //Turning on
       buttonState['chill'] = true;
+      buttonState['fast'] = false;
+      buttonState['vibes'] = false;
 
       synthNoteSequence = [true, true, true, true, true, true, true, true]; //Change this to set synth notes
       tempoIndex = 3; //set tempo index from main file
@@ -96,6 +100,8 @@ document.addEventListener('DOMContentLoaded', function () {
     if (buttonState['vibes'] === false) {
       //Turning on
       buttonState['vibes'] = true;
+      buttonState['fast'] = false;
+      buttonState['chill'] = false;
 
       synthNoteSequence = [true, false, false, false, false, false, false, false]; //Change this to set synth notes
       tempoIndex = 3; //set tempo index from main file

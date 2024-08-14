@@ -1,6 +1,6 @@
 import { dayNight } from './dayandnight.js';
 import { menuScenesSelector } from './menu.js';
-import { drumPadCity, stopDrumSequence, startDrumSequence, handleDrumInteraction } from './drumpadcity.js';
+import { drumPadCity, stopDrumSequence, startDrumSequence, handleDrumInteraction, clearDrumSequence } from './drumpadcity.js';
 
 // Loader logic
 document.addEventListener('DOMContentLoaded', function () {
@@ -294,7 +294,8 @@ document.addEventListener('click', function (event) {
             adjustVolume('down');
         } else if (intersectedObject.userData.isClearButton) {
             stopSequence();
-            clearButtonColor()
+            // clearDrumSequence();
+            clearButtonColor();
             setSynthState(Array(8).fill(false));
             updateText('', 'sequence');
         } else {

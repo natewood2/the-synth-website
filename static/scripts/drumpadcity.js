@@ -51,7 +51,7 @@ function initializeDrumSequencer(drumScene) {
             } else if (child.name === 'kick-button' || child.name === 'snare-button' || child.name === 'hat-button') {
                 child.userData.instrument = child.name.split('-')[0];
             } else if (child.name === 'clear-button') {
-                child.userData.isClearButton = true;
+                child.userData.isDrumClearButton = true;
             }
         }
     });
@@ -101,14 +101,14 @@ export function handleDrumInteraction(intersectedObject) {
   } else if (intersectedObject.userData.instrument) {
       selectDrumInstrument(intersectedObject.userData.instrument);
       setDrumState(drumSequenceData);
-  } else if (intersectedObject.userData.isClearButton) {
+  } else if (intersectedObject.userData.isDrumClearButton) {
       clearDrumSequence();
       setDrumState(drumSequenceData);
   }
 }
 
 
-function clearDrumSequence() {
+export function clearDrumSequence() {
   console.log('clearing drums')
   Object.keys(drumSequenceData).forEach(instrument => {
       drumSequenceData[instrument] = Array.from({ length: drumSteps }, () => false);

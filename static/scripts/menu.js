@@ -49,7 +49,6 @@ export function menuScenesSelector(scene, renderer) {
   // Load saved state from local storage
   const savedState = JSON.parse(localStorage.getItem('activeEffects'));
   if (savedState) {
-    console.log(`Local Storage menu settings: ${JSON.stringify(savedState)}`);
     Object.assign(activeEffects, savedState);
   }
 

@@ -14,7 +14,7 @@ const drumSelectionLights = [];
 let drumPlayer;
 
 
-// Loading the .glb 
+// Loading the .glb
 export function drumPadCity(scene, loader, modelPath) {
   loader.load(modelPath, function (gltf) {
     const position = { x: .2, y: 0, z: 0 };
@@ -97,15 +97,19 @@ export function handleDrumInteraction(intersectedObject) {
       const index = intersectedObject.userData.padIndex;
       drumSequenceData[currentDrumInstrument][index] = !drumSequenceData[currentDrumInstrument][index];
       updateDrumPadVisuals();
+      setDrumState(drumSequenceData);
   } else if (intersectedObject.userData.instrument) {
       selectDrumInstrument(intersectedObject.userData.instrument);
+      setDrumState(drumSequenceData);
   } else if (intersectedObject.userData.isClearButton) {
       clearDrumSequence();
+      setDrumState(drumSequenceData);
   }
 }
 
 
 function clearDrumSequence() {
+  console.log('clearing drums')
   Object.keys(drumSequenceData).forEach(instrument => {
       drumSequenceData[instrument] = Array.from({ length: drumSteps }, () => false);
   });
@@ -152,3 +156,20 @@ export function stopDrumSequence() {
       });
   }
 }
+
+export function setDrumState(drumSequence) {
+  const savedDrumState = JSON.parse(localStorage.getItem('drumSequenceData'));
+  const sequenceToUse = drumSequence || savedDrumState || {
+    kick: Array.from({ length: drumSteps }, () => false),
+    snare: Array.from({ length: drumSteps }, () => false),
+    hat: Array.from({ length: drumSteps }, () => false),
+  };
+
+  localStorage.setItem('drumSequenceData', JSON.stringify(sequenceToUse));
+
+  Object.assign(drumSequenceData, sequenceToUse);
+  updateDrumPadVisuals();
+}
+
+// Initialize drum sequence on load
+setDrumState();

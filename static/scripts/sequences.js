@@ -1,47 +1,128 @@
-import { setSynthState } from './main.js'
+import { setSynthState, updateTempo } from './main.js';
+import { setDrumState } from './drumpadcity.js';
+
 
 document.addEventListener('DOMContentLoaded', function () {
   let fastBtn = document.getElementById('fast');
   let chillBtn = document.getElementById('chill');
-  let spaceBtn = document.getElementById('space');
+  let vibesBtn = document.getElementById('vibes');
+  let synthNoteSequence = []; //format to use [true, false, true, false, true, false, true, false]
+  let drumsNoteSequence = {};
+  //format to use
+  // {"kick": [true, false, true, false, true, false, true, false, true, false, true, false],
+  //   "snare": [true, false, true, false, true, false, true, false, true, false, true, false],
+  //   "hat": [true, false, true, false, true, false, true, false, true, false, true, false]
+  // }
 
-  setSynthState();
+  let tempoIndex = 1;
+
   const buttonState = {
     'fast': false,
     'chill': false,
-    'space': false,
+    'vibes': false,
   }
+
+
   fastBtn.addEventListener('click', function () {
     if (buttonState['fast'] === false) {
       //Turning on
-      console.log('Fast on');
       buttonState['fast'] = true;
+
+      synthNoteSequence = [true, false, true, false, true, false, true, false]; //Change this to set synth notes
+      tempoIndex = 3; //set tempo index from main file
+      setSynthState(synthNoteSequence, tempoIndex);
+      updateTempo(); //update tempo and screen text
+
+      drumsNoteSequence = { //Change these to change drumn pad notes
+        "kick": [
+          true, false, true, false,
+          true, false, true, false,
+          true, false, true, false],
+        "snare": [
+          true, false, true, false,
+          true, false, true, false,
+          true, false, true, false],
+        "hat": [
+          false, true, false, true,
+          false, true, false, true,
+          false, true, false, true]
+      };
+      setDrumState(drumsNoteSequence);
+
     } else if (buttonState['fast'] === true){
       // Turning off
-      console.log('Fast off');
       buttonState['fast'] = false;
+      setSynthState('clear'); // sets note array to all false
     }
   });
+
+
   chillBtn.addEventListener('click', function () {
     if (buttonState['chill'] === false) {
       //Turning on
-      console.log('chill on');
       buttonState['chill'] = true;
+
+      synthNoteSequence = [true, true, true, true, true, true, true, true]; //Change this to set synth notes
+      tempoIndex = 3; //set tempo index from main file
+      setSynthState(synthNoteSequence, tempoIndex);
+      updateTempo(); //update tempo and screen text
+
+      drumsNoteSequence = { //Change these to change drumn pad notes
+        "kick": [
+          true, false, true, false,
+          true, false, true, false,
+          true, false, true, false],
+        "snare": [
+          true, false, true, false,
+          true, false, true, false,
+          true, false, true, false],
+        "hat": [
+          false, true, false, true,
+          false, true, false, true,
+          false, true, false, true]
+      };
+      setDrumState(drumsNoteSequence);
+
+
     } else if (buttonState['chill'] === true) {
       // Turning off
-      console.log('chill off');
       buttonState['chill'] = false;
+      setSynthState('clear'); // sets note array to all false
     }
   });
-  spaceBtn.addEventListener('click', function () {
-    if (buttonState['space'] === false) {
+
+
+  vibesBtn.addEventListener('click', function () {
+    if (buttonState['vibes'] === false) {
       //Turning on
-      console.log('space on');
-      buttonState['space'] = true;
-    } else if (buttonState['space'] === true) {
+      buttonState['vibes'] = true;
+
+      synthNoteSequence = [true, false, false, false, false, false, false, false]; //Change this to set synth notes
+      tempoIndex = 3; //set tempo index from main file
+      setSynthState(synthNoteSequence, tempoIndex);
+      updateTempo(); //update tempo and screen text
+
+      drumsNoteSequence = { //Change these to change drumn pad notes
+        "kick": [
+          true, false, true, false,
+          true, false, true, false,
+          true, false, true, false],
+        "snare": [
+          true, false, true, false,
+          true, false, true, false,
+          true, false, true, false],
+        "hat": [
+          false, true, false, true,
+          false, true, false, true,
+          false, true, false, true]
+      };
+      setDrumState(drumsNoteSequence);
+
+
+    } else if (buttonState['vibes'] === true) {
       // Turning off
-      console.log('space off');
-      buttonState['space'] = false;
+      buttonState['vibes'] = false;
+      setSynthState('clear'); // sets note array to all false
     }
   });
 });

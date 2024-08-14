@@ -94,7 +94,8 @@ loader.load('static/assets/synth.glb', function (gltf) {
     gltf.scene.position.set(position.x, position.y, position.z);
     scene.add(gltf.scene);
     console.log('synth loaded');
-
+    updateSynthButtonColors();
+    updateText(synthTextUpdate(), 'sequence');
     // Traverse the GLTF scene to find the buttons and lights
     gltf.scene.traverse((child) => {
         if (child.isMesh && child.name.startsWith('button-')) {
@@ -128,7 +129,7 @@ drumPadCity(scene, loader, 'static/assets/drumpadcity.glb');
 
 
 // Variables to use when updating screen
-let font; // used to hold the font out of the loader scope
+let fontTmp; // used to hold the font out of the loader scope
 let tempoText;
 let volumeText;
 let sequenceText;
@@ -150,7 +151,7 @@ let synth = synths[currentSynthIndex];
 function switchSynth() {
     currentSynthIndex = (currentSynthIndex + 1) % synths.length;
     synth = synths[currentSynthIndex];
-    updateText(`${synth.name}`, font, 'synth');
+    updateText(`${synth.name}`, 'synth');
 }
 
 // effects
@@ -193,12 +194,13 @@ function getNoteFromIndex(index) {
     return notes[index - 1] || 'C4';
 }
 
-function updateTempo() {
+export function updateTempo() {
     const newTempo = tempoOptions[currentTempoIndex];
     Tone.Transport.bpm.value = newTempo;
-    updateText(`${newTempo} bpm`, font, 'tempo');
+    updateText(`${newTempo} bpm`, 'tempo');
 }
 let volume = 15;
+synth.volume.value = -15;
 function adjustVolume(buttonClicked) {
     const amountToChange = 5;
     if (buttonClicked === 'up' && volume < 30) {
@@ -209,7 +211,7 @@ function adjustVolume(buttonClicked) {
         synth.volume.value -= amountToChange;
         volume -= amountToChange;
     }
-    updateText(`Vol: ${volume}`, font, 'volume');
+    updateText(`Vol: ${volume}`, 'volume');
 }
 
 function clearButtonColor() {
@@ -219,22 +221,23 @@ function clearButtonColor() {
 }
 
 // Logic for click events
-let noteSequence = setSynthState();
+let noteSequence = [];
 let isPlaying = false;
 let timeouts = [];
-console.log(noteSequence);
 
-export function setSynthState(noteArray) {
-  // Load saved state from local storage
+export function setSynthState(noteArray, newerTempo) {
   const synthState = JSON.parse(localStorage.getItem('synthNotes'));
-  // Find which sequence to use
-  const sequenceToUse = noteArray || synthState || Array(8).fill(false);
+  let sequenceToUse = noteArray || synthState;
+  if (noteArray === 'clear') {
+    sequenceToUse = Array(8).fill(false);
+  }
   localStorage.setItem('synthNotes', JSON.stringify(sequenceToUse));
-  console.log(`sequenceToUse set to: ${sequenceToUse}`);
-
-  // buttonsArray = document.querySelectorAll('a');
-  return sequenceToUse;
+  Object.assign(noteSequence, sequenceToUse);
+  updateSynthButtonColors();
+  updateText(synthTextUpdate(), 'sequence');
+  currentTempoIndex = newerTempo || 1;
 }
+setSynthState(); //init noteSequence
 
 document.addEventListener('click', function (event) {
     mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
@@ -254,13 +257,13 @@ document.addEventListener('click', function (event) {
             noteSequence[index] = !noteSequence[index]; // Toggle the step
             let buttonColor = intersectedObject.material.color;
             buttonColor.set(noteSequence[index] ? 0xff0000 : 0xFFF9CA);
-            let currentNotes = '';
-            for (let i = 0; i < 8; i++) {
-                if (noteSequence[i]) {
-                    currentNotes += ' ' + notes[i];
-                }
-            }
-            updateText(currentNotes, font, 'sequence');
+            // let currentNotes = '';
+            // for (let i = 0; i < 8; i++) {
+            //     if (noteSequence[i]) {
+            //         currentNotes += ' ' + notes[i];
+            //     }
+            // }
+            updateText(synthTextUpdate(), 'sequence');
             setSynthState(noteSequence);
         } else if (intersectedObject.userData.isPlayButton) {
             if (!isPlaying) {
@@ -290,11 +293,10 @@ document.addEventListener('click', function (event) {
         } else if (intersectedObject.userData.isVolumeDownButton) {
             adjustVolume('down');
         } else if (intersectedObject.userData.isClearButton) {
-            noteSequence = Array(8).fill(false);
             stopSequence();
             clearButtonColor()
             setSynthState(Array(8).fill(false));
-            updateText('', font, 'sequence');
+            updateText('', 'sequence');
         } else {
             handleDrumInteraction(intersectedObject);
         }
@@ -363,22 +365,22 @@ function playSequence() {
 // Load the font
 const fontLoader = new THREE.FontLoader();
 fontLoader.load('static/assets/Digital-7_Regular.json', function (fontLoaded) {
-    font = fontLoaded;
+    fontTmp = fontLoaded;
 
     setTimeout(() => {
-        updateText('Loading...', font, 'all');
+        updateText('Loading...', 'all');
     }, 2000);
     setTimeout(() => {
-        updateText('120 bpm', font, 'tempo');
-        updateText(`Vol: 15`, font, 'volume');
-        updateText('', font, 'sequence');
-        updateText('duoSynth', font, 'synth');
+        updateText('120 bpm', 'tempo');
+        updateText(`Vol: 15`, 'volume');
+        updateText('', 'sequence');
+        updateText('duoSynth', 'synth');
     }, 3000);
 });
 
-function updateText(text, font, textToUpdate) {
+function updateText(text, textToUpdate) {
     const textGeometry = new THREE.TextGeometry(text, {
-        font: font,
+        font: fontTmp,
         size: 1,
         height: 0.1, // z axis of letters
         bevelEnabled: false
@@ -435,3 +437,28 @@ window.addEventListener('resize', () => {
     camera.updateProjectionMatrix();
     renderer.setSize(window.innerWidth, window.innerHeight);
 });
+
+export function synthTextUpdate() {
+  let currentNotes = '';
+  for (let i = 0; i < 8; i++) {
+    if (noteSequence[i]) {
+      currentNotes += ' ' + notes[i];
+    }
+  }
+  return currentNotes;
+}
+
+export function updateSynthButtonColors() {
+  noteSequence.forEach((isActive, index) => {
+    const buttonName = `button-${index + 1}`;
+    const button = scene.getObjectByName(buttonName);
+
+    if (button) {
+      if (isActive) {
+        button.material.color.set(0xff0000);
+      } else {
+        button.material.color.set(0xFFF9CA);
+      }
+    }
+  });
+}

@@ -3,13 +3,24 @@ import { menuScenesSelector } from './menu.js';
 import { drumPadCity, stopDrumSequence, startDrumSequence, handleDrumInteraction, clearDrumSequence } from './drumpadcity.js';
 
 // Loader logic
-document.addEventListener('DOMContentLoaded', function () {
+let interval;
+let progress = 0;
+
+function startLoading() {
     const loadingText = document.getElementById('loading-text');
     const loadingScreen = document.getElementById('loading-screen');
     const mainContent = document.getElementById('main-content');
 
-    let progress = 0;
-    const interval = setInterval(function () {
+    progress = 0;
+    loadingText.textContent = '0%';
+    loadingScreen.style.display = 'flex';
+    mainContent.style.display = 'none';
+
+    // Clears
+    if (interval) clearInterval(interval);
+
+    // Begins loading
+    interval = setInterval(function () {
         progress += 1;
         if (progress > 100) progress = 100;
 
@@ -22,12 +33,25 @@ document.addEventListener('DOMContentLoaded', function () {
                 mainContent.style.display = 'block';
             }, 500);
         }
-    }, 40);
+    }, 400);
+}
+
+function checkScreenSize() {
+    if (window.innerWidth <= 768) {
+        document.getElementById('mobile-warning').style.display = 'flex';
+        document.getElementById('loading-screen').style.display = 'none';
+        document.getElementById('main-content').style.display = 'none';
+    } else {
+        document.getElementById('mobile-warning').style.display = 'none';
+        startLoading();
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+    checkScreenSize();
 });
 
-document.addEventListener("touchstart", function () {
-    console.log('You touched me');
-});
+window.addEventListener('resize', checkScreenSize);
 
 // Scene setup
 // Set up scene, camera, and renderer
@@ -158,7 +182,7 @@ function switchSynth() {
 const reverb = new Tone.Reverb({
     decay: 4,
     preDelay: 0.5,
-    wet: 0.7
+    wet: 0.9
 }).toDestination();
 
 const delay = new Tone.FeedbackDelay("8n", 0.5).toDestination();
@@ -166,7 +190,7 @@ const delay = new Tone.FeedbackDelay("8n", 0.5).toDestination();
 const chorus = new Tone.Chorus({
     frequency: 1.5,
     delayTime: 3.5,
-    depth: 0.7,
+    depth: 0.9,
     spread: 180,
     wet: 0.5
 }).toDestination();

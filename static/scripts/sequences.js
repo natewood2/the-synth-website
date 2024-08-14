@@ -22,13 +22,19 @@ document.addEventListener('DOMContentLoaded', function () {
     'vibes': false,
   }
 
+  function updateButtonColors() {
+    fastBtn.style.color = buttonState['fast'] ? 'white' : 'grey';
+    chillBtn.style.color = buttonState['chill'] ? 'white' : 'grey';
+    vibesBtn.style.color = buttonState['vibes'] ? 'white' : 'grey';
+  }
+
 
   fastBtn.addEventListener('click', function () {
     if (buttonState['fast'] === false) {
       //Turning on
       buttonState['fast'] = true;
       buttonState['vibes'] = false;
-      buttonState['chill'] = true;
+      buttonState['chill'] = false;
 
       synthNoteSequence = [true, false, true, false, true, false, true, false]; //Change this to set synth notes
       tempoIndex = 3; //set tempo index from main file
@@ -50,7 +56,7 @@ document.addEventListener('DOMContentLoaded', function () {
           false, true, false, true]
       };
       setDrumState(drumsNoteSequence);
-
+      updateButtonColors();
     } else if (buttonState['fast'] === true){
       // Turning off
       buttonState['fast'] = false;
@@ -86,7 +92,7 @@ document.addEventListener('DOMContentLoaded', function () {
           false, true, false, true]
       };
       setDrumState(drumsNoteSequence);
-
+      updateButtonColors();
 
     } else if (buttonState['chill'] === true) {
       // Turning off
@@ -123,7 +129,7 @@ document.addEventListener('DOMContentLoaded', function () {
           false, true, false, true]
       };
       setDrumState(drumsNoteSequence);
-
+      updateButtonColors();
 
     } else if (buttonState['vibes'] === true) {
       // Turning off

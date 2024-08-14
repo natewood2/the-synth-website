@@ -11,7 +11,6 @@
 
 <body>
     <!-- Loading Screen -->
-    <!-- style="height: 100vh" -->
     <div id="loading-screen" style="height: 100vh">
         <h1 id="logo">the synth website</h1>
         <h3 id="loading-text">0%</h3>
@@ -231,8 +230,8 @@
         synth.chain(chorus, delay, reverb, autoWah, Tone.Destination);
 
         // Scene Effects
-        menuScenesSelector(scene, renderer);
         dayNight(renderer, scene, 'on'); // Set to day time by default
+        setTimeout(menuScenesSelector(scene, renderer), 0);// push to the que so this doesnt slow down load times
 
         const tempoOptions = [90, 120, 130, 140];
         let currentTempoIndex = 1; // 1 fo 120 index
@@ -277,6 +276,18 @@
         let isPlaying = false;
         let timeouts = [];
 
+        // Load saved state from local storage
+        const savedSynthState = JSON.parse(localStorage.getItem('synthNotes'));
+        if (savedSynthState) {
+            console.log(`Local Storage synth settings: ${JSON.stringify(savedSynthState)}`);
+            Object.assign(noteSequence, savedSynthState);
+        }
+        function saveSynthState() {
+            console.log('Saving synth noteSequence');
+            localStorage.setItem('synthNotes', JSON.stringify(noteSequence));
+            console.log(JSON.stringify(JSON.parse(localStorage.getItem('synthNotes'))));
+        }
+
         document.addEventListener('click', function (event) {
             mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
             mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
@@ -302,6 +313,7 @@
                         }
                     }
                     updateText(currentNotes, font, 'sequence');
+                    saveSynthState();
                 } else if (intersectedObject.userData.isPlayButton) {
                     if (!isPlaying) {
                         // Start the audio context if it is not already started

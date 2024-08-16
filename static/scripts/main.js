@@ -69,6 +69,23 @@ camera.position.set(0, 1.2, 3); // x, y, z
 const raycaster = new THREE.Raycaster();
 const mouse = new THREE.Vector2();
 
+// Set up constraints for the OrbitControls
+controls.minPolarAngle = 0; // Prevent looking below the horizon
+controls.maxPolarAngle = Math.PI / 2; // Prevent looking above 90 degrees
+
+controls.minAzimuthAngle = -Math.PI / 2; // Limit left rotation to 90 degrees
+controls.maxAzimuthAngle = Math.PI / 2; // Limit right rotation to 90 degrees
+
+// Set up zoom constraints
+controls.minDistance = 1; // Minimum zoom distance
+controls.maxDistance = 2; // Maximum zoom distance
+
+// Function to clamp the camera's position
+function clampCameraPosition() {
+    if (camera.position.y < 0) {
+        camera.position.y = 0;
+    }
+}
 
 // Load Models
 const loader = new THREE.GLTFLoader();
@@ -445,6 +462,7 @@ function updateText(text, textToUpdate) {
 function animate() {
     requestAnimationFrame(animate);
     controls.update();
+    clampCameraPosition();
     renderer.render(scene, camera);
 }
 animate();

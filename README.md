@@ -11,7 +11,12 @@ The Synth Website is an interactive 3D web experience created using HTML5, CSS, 
 - **3D Synthesizer**: A fully interactive 3D synthesizer modeled in Blender, allowing users to create and manipulate sounds in real-time.
 - **Drum Pad**: An accompanying drum pad that loops in with the synthesizer, adding rhythm and depth to your music.
 - **Pre-made Note Sequences**: A dropdown menu lets you play pre-made note sequences to explore the possibilities of the synth.
+  ![pre-made_beats_gif](https://github.com/user-attachments/assets/a2c472e5-8723-40db-866a-d2a7241a1756)
+
 - **Environmental Effects**: Toggle between different environments with effects like rain, snow, and day/night cycles, adding an immersive layer to the scene.
+  ![cabin_elements_gif](https://github.com/user-attachments/assets/e18a4f42-3766-42fa-90fa-074be2e9832b)
+  ![cabin_img](https://github.com/user-attachments/assets/300b19cd-0523-4a87-8bb0-725276752627)
+
 - **Blender Integration**: All 3D objects and the scene were created in Blender, showcasing advanced modeling and animation techniques.
 
 ## Technologies Used
